@@ -15,7 +15,14 @@ export default async function FpoPoolPage() {
   if (!user) redirect('/login')
 
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-  if (profile?.role !== 'fpo_admin') redirect('/dashboard')
+
+  // Check role from profile OR user_metadata fallback
+  const role = profile?.role ?? user.user_metadata?.role
+  if (role !== 'fpo_admin') {
+    if (role === 'buyer') redirect('/buyer/browse')
+    if (role === 'admin') redirect('/admin')
+    redirect('/dashboard')
+  }
 
   const { data: pools } = await supabase
     .from('fpo_pools')

@@ -2,41 +2,68 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Navbar } from '@/components/layout/navbar'
 import { ChatWidget } from '@/components/chat/chat-widget'
-import { TrendingUp, TrendingDown, Package, PlusCircle, Leaf, ShieldCheck, AlertCircle } from 'lucide-react'
+import {
+  TrendingUp, TrendingDown, Package, PlusCircle,
+  Leaf, ShieldCheck, AlertCircle,
+} from 'lucide-react'
 import Link from 'next/link'
-import { formatCurrency, cropEmoji, getStatusColor, getStatusLabel, calculateForecast } from '@/lib/utils'
+import {
+  formatCurrency, cropEmoji, getStatusColor,
+  getStatusLabel, calculateForecast,
+} from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  let supabase: Awaited<ReturnType<typeof createClient>>
 
-  let { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-  
+  try {
+    supabase = await createClient()
+  } catch {
+    redirect('/login')
+  }
+
+  const { data: { user }, error: userError } = await supabase!.auth.getUser()
+  if (userError || !user) redirect('/login')
+
+  // Try to get profile; auto-create if missing
+  let { data: profile } = await supabase!.from('profiles').select('*').eq('id', user.id).single()
+
   if (!profile) {
-    const defaultRole = user.email?.includes('buyer') ? 'buyer' : user.email?.includes('admin') ? 'admin' : user.email?.includes('fpo') ? 'fpo_admin' : 'farmer'
-    await supabase.from('profiles').upsert({
+    const guessedRole = user.user_metadata?.role
+      ?? (user.email?.includes('buyer') ? 'buyer'
+        : user.email?.includes('admin') ? 'admin'
+        : user.email?.includes('fpo') ? 'fpo_admin'
+        : 'farmer')
+
+    const { error: upsertErr } = await supabase!.from('profiles').upsert({
       id: user.id,
-      role: defaultRole,
-      full_name: user.email?.split('@')[0] ?? 'User',
+      role: guessedRole,
+      full_name: user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? 'User',
       language_pref: 'hi',
       trust_score: 50,
     })
-    const { data: createdProfile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-    profile = createdProfile
+
+    if (!upsertErr) {
+      const { data: fresh } = await supabase!.from('profiles').select('*').eq('id', user.id).single()
+      profile = fresh
+    }
   }
 
-  if (!profile) redirect('/login')
-  if (profile.role === 'buyer') redirect('/buyer/browse')
-  if (profile.role === 'admin') redirect('/admin')
+  // Role-based redirect — dashboard is only for farmer / fpo_admin
+  const role = profile?.role ?? user.user_metadata?.role ?? 'farmer'
+  if (role === 'buyer') redirect('/buyer/browse')
+  if (role === 'admin') redirect('/admin')
+  if (role === 'fpo_admin') redirect('/fpo/pool')
 
-  const primaryCrops = profile.primary_crops ?? ['Wheat']
-  const district = profile.district ?? 'Indore'
+  // Safe defaults when profile is still null (edge case)
+  const primaryCrops: string[] = profile?.primary_crops ?? ['Wheat']
+  const district: string = profile?.district ?? 'Indore'
+  const displayName: string = profile?.full_name ?? user.email?.split('@')[0] ?? 'Farmer'
+  const trustScore: number = profile?.trust_score ?? 50
 
   // Today's prices for primary crops
-  const { data: todayPrices } = await supabase
+  const { data: todayPrices } = await supabase!
     .from('mandi_prices')
     .select('*')
     .in('crop', primaryCrops)
@@ -44,7 +71,7 @@ export default async function DashboardPage() {
     .order('recorded_on', { ascending: false })
     .limit(primaryCrops.length * 3)
 
-  // Deduplicate: one latest per crop
+  // Deduplicate: one latest + one previous per crop
   const latestByKrop: Record<string, { price: number; prev: number }> = {}
   const seen = new Set<string>()
   for (const p of (todayPrices ?? [])) {
@@ -57,7 +84,7 @@ export default async function DashboardPage() {
   }
 
   // My lots
-  const { data: myLots } = await supabase
+  const { data: myLots } = await supabase!
     .from('lots')
     .select('*')
     .eq('owner_id', user.id)
@@ -66,7 +93,7 @@ export default async function DashboardPage() {
 
   // AI Advisory for first crop
   const firstCrop = primaryCrops[0]
-  const { data: priceSeries } = await supabase
+  const { data: priceSeries } = await supabase!
     .from('mandi_prices')
     .select('price_per_quintal')
     .eq('crop', firstCrop)
@@ -81,19 +108,22 @@ export default async function DashboardPage() {
     <div className="min-h-screen bg-[#F1F8E9]">
       <Navbar profile={profile} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+
         {/* Welcome */}
         <div className="mb-8 flex items-start justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">
-              नमस्ते, {profile.full_name?.split(' ')[0] ?? 'Farmer'} 👋
+              नमस्ते, {displayName.split(' ')[0]} 👋
             </h1>
-            <p className="text-gray-500 text-sm mt-1">{profile.district} • {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+            <p className="text-gray-500 text-sm mt-1">
+              {district} • {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </p>
           </div>
           <div className="flex items-center gap-2 bg-white rounded-xl px-4 py-2 shadow-sm border border-gray-100">
             <ShieldCheck className="w-5 h-5 text-[#2D7D32]" />
             <div>
               <p className="text-xs text-gray-500">Trust Score</p>
-              <p className="font-bold text-[#2D7D32]">{profile.trust_score}/100</p>
+              <p className="font-bold text-[#2D7D32]">{trustScore}/100</p>
             </div>
           </div>
         </div>
@@ -101,14 +131,16 @@ export default async function DashboardPage() {
         {/* Price Cards */}
         {Object.keys(latestByKrop).length > 0 && (
           <section className="mb-8">
-            <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3">Today's Prices in {district}</h2>
+            <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3">
+              Today&apos;s Prices in {district}
+            </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {Object.entries(latestByKrop).map(([crop, { price, prev }]) => {
                 const up = prev > 0 ? price >= prev : true
                 const pct = prev > 0 ? Math.abs(((price - prev) / prev) * 100).toFixed(1) : null
                 return (
                   <Link key={crop} href="/prices"
-                    className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all card-hover">
+                    className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all">
                     <div className="text-2xl mb-1">{cropEmoji(crop)}</div>
                     <p className="text-sm font-semibold text-gray-700">{crop}</p>
                     <p className="text-lg font-bold text-gray-900 mt-1">{formatCurrency(price)}</p>
@@ -126,12 +158,25 @@ export default async function DashboardPage() {
           </section>
         )}
 
+        {/* No prices fallback */}
+        {Object.keys(latestByKrop).length === 0 && (
+          <section className="mb-8">
+            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 text-center">
+              <TrendingUp className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+              <p className="text-blue-700 font-medium text-sm">No price data yet for your crops in {district}</p>
+              <Link href="/prices" className="text-xs text-blue-500 hover:underline mt-1 inline-block">
+                Browse all prices →
+              </Link>
+            </div>
+          </section>
+        )}
+
         {/* AI Advisory */}
         {advisory && (
           <section className="mb-8">
             <div className={`rounded-2xl p-5 border-2 shadow-sm ${advisory.recommendation === 'hold' ? 'bg-green-50 border-green-300' : 'bg-amber-50 border-amber-300'}`}>
               <div className="flex items-start gap-3">
-                <div className={`text-3xl`}>{advisory.recommendation === 'hold' ? '🟢' : '🔴'}</div>
+                <div className="text-3xl">{advisory.recommendation === 'hold' ? '🟢' : '🔴'}</div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className={`text-sm font-bold uppercase tracking-wide ${advisory.recommendation === 'hold' ? 'text-green-700' : 'text-amber-700'}`}>
@@ -159,10 +204,10 @@ export default async function DashboardPage() {
           <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3">Quick Actions</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { href: '/lots/create', icon: PlusCircle, label: 'Create Lot', color: 'bg-[#2D7D32] text-white hover:bg-[#1B5E20]' },
-              { href: '/lots', icon: Package, label: 'My Lots', color: 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200' },
-              { href: '/prices', icon: TrendingUp, label: 'View Prices', color: 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200' },
-              { href: '/offers', icon: AlertCircle, label: 'Offers', color: 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200' },
+              { href: '/lots/create', icon: PlusCircle, label: 'Create Lot',  color: 'bg-[#2D7D32] text-white hover:bg-[#1B5E20]' },
+              { href: '/lots',        icon: Package,    label: 'My Lots',     color: 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200' },
+              { href: '/prices',      icon: TrendingUp, label: 'View Prices', color: 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200' },
+              { href: '/offers',      icon: AlertCircle,label: 'Offers',      color: 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200' },
             ].map(({ href, icon: Icon, label, color }) => (
               <Link key={href} href={href}
                 className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold text-sm transition-all shadow-sm ${color}`}>
@@ -174,7 +219,7 @@ export default async function DashboardPage() {
         </section>
 
         {/* Recent Lots */}
-        {(myLots?.length ?? 0) > 0 && (
+        {(myLots?.length ?? 0) > 0 ? (
           <section>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Recent Lots</h2>
@@ -203,9 +248,7 @@ export default async function DashboardPage() {
               ))}
             </div>
           </section>
-        )}
-
-        {(myLots?.length ?? 0) === 0 && (
+        ) : (
           <div className="text-center py-16 bg-white rounded-2xl border border-gray-100 shadow-sm">
             <Leaf className="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-500 font-medium">No lots yet</p>
@@ -216,6 +259,7 @@ export default async function DashboardPage() {
             </Link>
           </div>
         )}
+
       </main>
       <ChatWidget />
     </div>

@@ -40,7 +40,7 @@ export default function FarmerOnboarding() {
 
     if (error) { toast.error('Failed to save profile'); setLoading(false); return }
     toast.success('Profile saved! Welcome to KisanSetu 🌾')
-    router.push('/dashboard')
+    window.location.href = '/dashboard'
   }
 
   return (

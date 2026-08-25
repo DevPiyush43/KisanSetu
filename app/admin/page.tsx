@@ -2,9 +2,9 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Navbar } from '@/components/layout/navbar'
 import { ChatWidget } from '@/components/chat/chat-widget'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { formatDate } from '@/lib/utils'
 import Link from 'next/link'
-import { BarChart2, Package, HandshakeIcon, AlertCircle, Clock, Users } from 'lucide-react'
+import { BarChart2, Package, HandshakeIcon, AlertCircle, Users } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,29 +14,29 @@ export default async function AdminPage() {
   if (!user) redirect('/login')
 
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-  if (profile?.role !== 'admin') redirect('/dashboard')
 
-  // KPI queries
-  const [
-    { count: activeLots },
-    { count: totalUsers },
-    { count: openGrievances },
-    { data: recentContracts },
-    { data: recentGrievances },
-  ] = await Promise.all([
+  // If not admin, redirect to appropriate dashboard
+  const role = profile?.role ?? user.user_metadata?.role
+  if (role !== 'admin') {
+    if (role === 'buyer') redirect('/buyer/browse')
+    if (role === 'fpo_admin') redirect('/fpo/pool')
+    redirect('/dashboard')
+  }
+
+  // KPI queries — wrapped in Promise.allSettled so one failure doesn't crash the page
+  const results = await Promise.allSettled([
     supabase.from('lots').select('*', { count: 'exact', head: true }).in('status', ['listed', 'offer_received', 'negotiating']),
     supabase.from('profiles').select('*', { count: 'exact', head: true }),
     supabase.from('grievances').select('*', { count: 'exact', head: true }).eq('status', 'open'),
-    supabase.from('contracts')
-      .select('*, lot:lots(crop), farmer:profiles!contracts_farmer_id_fkey(full_name), buyer:profiles!contracts_buyer_id_fkey(company_name, full_name), payment:payments(status)')
-      .order('created_at', { ascending: false })
-      .limit(5),
-    supabase.from('grievances')
-      .select('*, filer:profiles!grievances_filed_by_fkey(full_name, role)')
-      .eq('status', 'open')
-      .order('created_at', { ascending: false })
-      .limit(5),
+    supabase.from('contracts').select('id, created_at, status, lot_id, farmer_id, buyer_id').order('created_at', { ascending: false }).limit(5),
+    supabase.from('grievances').select('id, reason, status, created_at, filed_by').eq('status', 'open').order('created_at', { ascending: false }).limit(5),
   ])
+
+  const activeLots      = results[0].status === 'fulfilled' ? results[0].value.count : 0
+  const totalUsers      = results[1].status === 'fulfilled' ? results[1].value.count : 0
+  const openGrievances  = results[2].status === 'fulfilled' ? results[2].value.count : 0
+  const recentContracts = results[3].status === 'fulfilled' ? (results[3].value.data ?? []) : []
+  const recentGrievances = results[4].status === 'fulfilled' ? (results[4].value.data ?? []) : []
 
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
   const { count: dealsThisWeek } = await supabase
@@ -45,10 +45,10 @@ export default async function AdminPage() {
     .gte('created_at', weekAgo)
 
   const kpis = [
-    { label: 'Active Lots', value: activeLots ?? 0, icon: Package, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
-    { label: 'Deals This Week', value: dealsThisWeek ?? 0, icon: HandshakeIcon, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' },
-    { label: 'Open Grievances', value: openGrievances ?? 0, icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' },
-    { label: 'Total Users', value: totalUsers ?? 0, icon: Users, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' },
+    { label: 'Active Lots',      value: activeLots ?? 0,     icon: Package,       color: 'text-blue-600',   bg: 'bg-blue-50',   border: 'border-blue-200' },
+    { label: 'Deals This Week',  value: dealsThisWeek ?? 0,  icon: HandshakeIcon, color: 'text-green-600',  bg: 'bg-green-50',  border: 'border-green-200' },
+    { label: 'Open Grievances',  value: openGrievances ?? 0, icon: AlertCircle,   color: 'text-red-600',    bg: 'bg-red-50',    border: 'border-red-200' },
+    { label: 'Total Users',      value: totalUsers ?? 0,     icon: Users,         color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' },
   ]
 
   return (
@@ -63,7 +63,7 @@ export default async function AdminPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {kpis.map(({ label, value, icon: Icon, color, bg, border }) => (
             <div key={label} className={`${bg} border ${border} rounded-2xl p-5`}>
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 bg-white`}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3 bg-white">
                 <Icon className={`w-5 h-5 ${color}`} />
               </div>
               <p className={`text-3xl font-bold ${color}`}>{value}</p>
@@ -80,24 +80,19 @@ export default async function AdminPage() {
               <Link href="/admin/grievances" className="text-xs text-[#2D7D32] hover:underline">View all →</Link>
             </div>
             <div>
-              {(recentContracts ?? []).map((c: any, i: number) => {
-                const payment = Array.isArray(c.payment) ? c.payment[0] : c.payment
-                return (
-                  <Link key={c.id} href={`/contracts/${c.id}`}
-                    className={`flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 transition-colors ${i > 0 ? 'border-t border-gray-100' : ''}`}>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-800">
-                        {c.lot?.crop} — {c.farmer?.full_name} ↔ {c.buyer?.company_name ?? c.buyer?.full_name}
-                      </p>
-                      <p className="text-xs text-gray-400">{formatDate(c.created_at)}</p>
-                    </div>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${payment?.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                      {payment?.status ?? 'pending'}
-                    </span>
-                  </Link>
-                )
-              })}
-              {(recentContracts ?? []).length === 0 && (
+              {(recentContracts as any[]).map((c: any, i: number) => (
+                <Link key={c.id} href={`/contracts/${c.id}`}
+                  className={`flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 transition-colors ${i > 0 ? 'border-t border-gray-100' : ''}`}>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">Contract #{c.id?.slice(0, 8)}…</p>
+                    <p className="text-xs text-gray-400">{formatDate(c.created_at)}</p>
+                  </div>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${c.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                    {c.status ?? 'pending'}
+                  </span>
+                </Link>
+              ))}
+              {recentContracts.length === 0 && (
                 <p className="text-center text-gray-400 text-sm py-8">No contracts yet</p>
               )}
             </div>
@@ -110,17 +105,17 @@ export default async function AdminPage() {
               <Link href="/admin/grievances" className="text-xs text-[#2D7D32] hover:underline">Manage →</Link>
             </div>
             <div>
-              {(recentGrievances ?? []).map((g: any, i: number) => (
+              {(recentGrievances as any[]).map((g: any, i: number) => (
                 <Link key={g.id} href="/admin/grievances"
                   className={`flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 transition-colors ${i > 0 ? 'border-t border-gray-100' : ''}`}>
                   <div>
-                    <p className="text-sm font-semibold text-gray-800">{g.reason}</p>
-                    <p className="text-xs text-gray-400">By {g.filer?.full_name} ({g.filer?.role}) • {formatDate(g.created_at)}</p>
+                    <p className="text-sm font-semibold text-gray-800">{g.reason ?? 'Grievance filed'}</p>
+                    <p className="text-xs text-gray-400">{formatDate(g.created_at)}</p>
                   </div>
                   <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Open</span>
                 </Link>
               ))}
-              {(recentGrievances ?? []).length === 0 && (
+              {recentGrievances.length === 0 && (
                 <p className="text-center text-gray-400 text-sm py-8">No open grievances 🎉</p>
               )}
             </div>
@@ -130,8 +125,8 @@ export default async function AdminPage() {
         {/* Quick Links */}
         <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3">
           {[
-            { href: '/admin/users', label: '👥 Manage Users', desc: 'Verify & suspend accounts' },
-            { href: '/admin/grievances', label: '⚖️ Grievances Queue', desc: `${openGrievances ?? 0} open cases` },
+            { href: '/admin/users',       label: '👥 Manage Users',       desc: 'Verify & suspend accounts' },
+            { href: '/admin/grievances',  label: '⚖️ Grievances Queue',   desc: `${openGrievances ?? 0} open cases` },
           ].map(({ href, label, desc }) => (
             <Link key={href} href={href}
               className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all">
