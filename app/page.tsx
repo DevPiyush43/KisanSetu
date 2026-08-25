@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
-  Leaf, TrendingUp, ShieldCheck, FileText, ArrowRight, Truck,
+  TrendingUp, ShieldCheck, FileText, ArrowRight, Truck,
   Sparkles, Award, Handshake, Users
 } from 'lucide-react'
 
@@ -36,8 +37,15 @@ export default function SplashLandingPage() {
       {showSplash && (
         <div className="fixed inset-0 z-50 bg-gradient-to-br from-[#1B5E20] via-[#2D7D32] to-[#144217] flex flex-col items-center justify-center p-6 text-white text-center transition-opacity duration-700">
           <div className="animate-bounce mb-6">
-            <div className="w-20 h-20 bg-white/10 backdrop-blur rounded-3xl flex items-center justify-center border border-white/20 shadow-2xl">
-              <Leaf className="w-12 h-12 text-[#F9A825]" />
+            <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-[#F9A825] shadow-2xl">
+              <Image
+                src="/kisansetu-logo.png"
+                alt="KisanSetu Logo"
+                width={112}
+                height={112}
+                className="w-full h-full object-cover"
+                priority
+              />
             </div>
           </div>
           <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-2">KisanSetu</h1>
@@ -75,7 +83,13 @@ export default function SplashLandingPage() {
       <header className="sticky top-0 z-40 bg-[#1B5E20]/95 backdrop-blur text-white shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-black text-xl">
-            <Leaf className="w-7 h-7 text-[#F9A825]" />
+            <Image
+              src="/kisansetu-logo.png"
+              alt="KisanSetu"
+              width={36}
+              height={36}
+              className="rounded-full border-2 border-[#F9A825]"
+            />
             <span>KisanSetu</span>
           </Link>
           <div className="flex items-center gap-3">
@@ -255,7 +269,7 @@ export default function SplashLandingPage() {
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
           <div>
             <div className="flex items-center justify-center sm:justify-start gap-2 font-bold text-lg mb-2">
-              <Leaf className="w-5 h-5 text-[#F9A825]" />
+              <Image src="/kisansetu-logo.png" alt="KisanSetu" width={28} height={28} className="rounded-full border border-[#F9A825]" />
               <span>KisanSetu</span>
             </div>
             <p className="text-xs text-green-200">

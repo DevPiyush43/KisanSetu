@@ -2,11 +2,12 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Profile } from '@/lib/types'
 import {
-  Leaf, LayoutDashboard, TrendingUp, Package, PlusCircle,
+  LayoutDashboard, TrendingUp, Package, PlusCircle,
   ShoppingCart, FileText, Users, AlertCircle, BarChart2,
   HandshakeIcon, LogOut, User, ChevronDown,
   Menu, X
@@ -73,8 +74,14 @@ export function Navbar({ profile }: NavbarProps) {
           {/* Logo */}
           <Link href={profile?.role === 'buyer' ? '/buyer/browse' : profile?.role === 'admin' ? '/admin' : '/dashboard'}
             className="flex items-center gap-2 font-bold text-xl hover:opacity-90 transition-opacity">
-            <Leaf className="w-7 h-7 text-[#F9A825]" />
-            <span>KisanSetu</span>
+            <Image
+              src="/kisansetu-logo.png"
+              alt="KisanSetu Logo"
+              width={40}
+              height={40}
+              className="rounded-full border-2 border-[#F9A825] shadow"
+            />
+            <span className="hidden sm:block">KisanSetu</span>
           </Link>
 
           {/* Desktop Nav */}

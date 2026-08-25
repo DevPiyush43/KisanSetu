@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
-import { Leaf, ArrowRight, ArrowLeft, Check, AlertCircle } from 'lucide-react'
+import { ArrowRight, ArrowLeft, Check, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { Role } from '@/lib/types'
 
@@ -184,10 +185,19 @@ export default function SignupPage() {
       <div className="w-full max-w-lg">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur px-4 py-2 rounded-full mb-4">
-            <Leaf className="w-5 h-5 text-[#F9A825]" />
-            <span className="text-white font-bold text-lg">KisanSetu</span>
-          </div>
+          <Link href="/" className="inline-flex flex-col items-center gap-2 hover:opacity-90 transition-opacity mb-3">
+            <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-[#F9A825] shadow-xl">
+              <Image
+                src="/kisansetu-logo.png"
+                alt="KisanSetu Logo"
+                width={80}
+                height={80}
+                className="w-full h-full object-cover"
+                priority
+              />
+            </div>
+            <span className="text-white font-bold text-xl">KisanSetu</span>
+          </Link>
           <h1 className="text-3xl font-bold text-white">Create your account</h1>
           <p className="text-green-200 mt-1">Step {step} of 2</p>
         </div>

@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import {
-  Leaf, Eye, EyeOff, Mail, Lock, ArrowRight,
+  Eye, EyeOff, Mail, Lock, ArrowRight,
   AlertCircle, Info, ChevronDown, ChevronUp,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -123,11 +124,20 @@ export default function LoginPage() {
 
         {/* ── Logo ── */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 bg-white/10 backdrop-blur px-5 py-2 rounded-full mb-4 hover:bg-white/20 transition-all">
-            <Leaf className="w-5 h-5 text-[#F9A825]" />
-            <span className="text-white font-bold text-lg tracking-tight">KisanSetu</span>
+          <Link href="/" className="inline-flex flex-col items-center gap-3 hover:opacity-90 transition-opacity mb-2">
+            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-[#F9A825] shadow-2xl">
+              <Image
+                src="/kisansetu-logo.png"
+                alt="KisanSetu Logo"
+                width={96}
+                height={96}
+                className="w-full h-full object-cover"
+                priority
+              />
+            </div>
+            <span className="text-white font-bold text-2xl tracking-tight">KisanSetu</span>
           </Link>
-          <h1 className="text-3xl font-extrabold text-white">Welcome Back</h1>
+          <h1 className="text-2xl font-extrabold text-white">Welcome Back</h1>
           <p className="text-green-200 mt-1 text-sm">Sign in to access your dashboard</p>
         </div>
 
@@ -252,10 +262,10 @@ export default function LoginPage() {
             )}
           </div>
 
-          {/* ── Back to splash ── */}
           <div className="border-t border-gray-100 px-8 py-3 text-center">
-            <Link href="/" className="text-xs text-gray-400 hover:text-gray-600 inline-flex items-center gap-1">
-              <Leaf className="w-3 h-3" /> Back to KisanSetu home
+            <Link href="/" className="text-xs text-gray-400 hover:text-gray-600 inline-flex items-center gap-1.5">
+              <Image src="/kisansetu-logo.png" alt="" width={16} height={16} className="rounded-full" />
+              Back to KisanSetu home
             </Link>
           </div>
         </div>
