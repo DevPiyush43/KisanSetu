@@ -1,7 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Navbar } from '@/components/layout/navbar'
 import { ChatWidget } from '@/components/chat/chat-widget'
@@ -13,7 +12,6 @@ import { toast } from 'sonner'
 const STEPS = ['Crop Details', 'Quantity & Price', 'Photos', 'Review & Submit']
 
 export default function CreateLotPage() {
-  const router = useRouter()
   const supabase = createClient()
   const [step, setStep] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -26,7 +24,7 @@ export default function CreateLotPage() {
     location_district: '', location_village: '', pickup_notes: '',
   })
 
-  useState(() => {
+  useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (user) {
         const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
@@ -35,7 +33,7 @@ export default function CreateLotPage() {
         if (data?.primary_crops?.[0]) setForm(f => ({ ...f, crop: data.primary_crops[0] }))
       }
     })
-  })
+  }, [])
 
   const handlePhotoSelect = (files: FileList | null) => {
     if (!files) return
@@ -58,7 +56,34 @@ export default function CreateLotPage() {
   const handleSubmit = async () => {
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/login'); return }
+    if (!user) { window.location.href = '/login'; return }
+
+    // ── Ensure profile row exists (prevents FK violation on lots.owner_id) ──
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('id, role')
+      .eq('id', user.id)
+      .single()
+
+    if (!existingProfile) {
+      const guessedRole = user.user_metadata?.role
+        ?? (user.email?.includes('buyer') ? 'buyer'
+          : user.email?.includes('admin') ? 'admin'
+          : user.email?.includes('fpo') ? 'fpo_admin'
+          : 'farmer')
+      const { error: upsertErr } = await supabase.from('profiles').upsert({
+        id: user.id,
+        role: guessedRole,
+        full_name: user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? 'Farmer',
+        language_pref: 'hi',
+        trust_score: 50,
+      })
+      if (upsertErr) {
+        toast.error('Could not create your profile. Please complete onboarding first.')
+        setLoading(false)
+        return
+      }
+    }
 
     // Upload photos
     const photoUrls: string[] = []
@@ -90,8 +115,8 @@ export default function CreateLotPage() {
       return
     }
 
-    // Write ledger event
-    await fetch('/api/ledger-write', {
+    // Write ledger event (non-blocking)
+    fetch('/api/ledger-write', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -100,10 +125,10 @@ export default function CreateLotPage() {
         actor_id: user.id,
         payload: { crop: form.crop, quantity: form.quantity, district: form.location_district }
       }),
-    })
+    }).catch(() => {}) // ignore ledger failures
 
     toast.success('Lot created and listed successfully! 🌾')
-    router.push('/lots')
+    window.location.href = '/lots'
   }
 
   const f = form
