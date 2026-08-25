@@ -2,32 +2,16 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import {
   Leaf, TrendingUp, ShieldCheck, FileText, ArrowRight, Truck,
-  Sparkles, CheckCircle2, Award, Zap, Handshake, Users, ChevronRight,
-  PlayCircle, RefreshCw, Layers
+  Sparkles, Award, Handshake, Users
 } from 'lucide-react'
 
 export default function SplashLandingPage() {
-  const router = useRouter()
-  const supabase = createClient()
   const [showSplash, setShowSplash] = useState(true)
   const [splashProgress, setSplashProgress] = useState(0)
-  const [user, setUser] = useState<any>(null)
-  const [role, setRole] = useState<string | null>(null)
 
   useEffect(() => {
-    // Check if user is already logged in
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (user) {
-        setUser(user)
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-        setRole(profile?.role ?? 'farmer')
-      }
-    })
-
     // Splash animation progress
     const interval = setInterval(() => {
       setSplashProgress(prev => {
@@ -37,20 +21,13 @@ export default function SplashLandingPage() {
         }
         return prev + 25
       })
-    }, 300)
+    }, 250)
 
     return () => clearInterval(interval)
   }, [])
 
   const enterApp = () => {
     setShowSplash(false)
-  }
-
-  const getDashboardUrl = () => {
-    if (!user) return '/login'
-    if (role === 'buyer') return '/buyer/browse'
-    if (role === 'admin') return '/admin'
-    return '/dashboard'
   }
 
   return (
@@ -81,23 +58,14 @@ export default function SplashLandingPage() {
               onClick={enterApp}
               className="bg-[#F9A825] hover:bg-amber-400 text-[#1B5E20] px-8 py-3 rounded-xl font-bold text-base shadow-xl transition-all hover:scale-105 flex items-center justify-center gap-2"
             >
-              Explore Platform <ArrowRight className="w-5 h-5" />
+              Learn More <ArrowRight className="w-5 h-5" />
             </button>
-            {user ? (
-              <Link
-                href={getDashboardUrl()}
-                className="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-xl font-semibold text-base transition-all border border-white/30"
-              >
-                Go to Dashboard
-              </Link>
-            ) : (
-              <Link
-                href="/login"
-                className="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-xl font-semibold text-base transition-all border border-white/30"
-              >
-                Sign In / Demo
-              </Link>
-            )}
+            <Link
+              href="/login"
+              className="bg-white hover:bg-gray-100 text-[#1B5E20] px-8 py-3 rounded-xl font-bold text-base shadow-xl transition-all hover:scale-105 flex items-center justify-center gap-2"
+            >
+              Sign In / Enter App 🌾
+            </Link>
           </div>
         </div>
       )}
@@ -111,29 +79,18 @@ export default function SplashLandingPage() {
             <span>KisanSetu</span>
           </Link>
           <div className="flex items-center gap-3">
-            {user ? (
-              <Link
-                href={getDashboardUrl()}
-                className="bg-[#F9A825] hover:bg-amber-400 text-[#1B5E20] font-bold text-sm px-4 py-2 rounded-xl transition-all shadow"
-              >
-                My Dashboard →
-              </Link>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="text-sm font-semibold text-green-100 hover:text-white px-3 py-2 rounded-lg"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/signup"
-                  className="bg-[#F9A825] hover:bg-amber-400 text-[#1B5E20] font-bold text-sm px-4 py-2 rounded-xl transition-all shadow"
-                >
-                  Get Started
-                </Link>
-              </>
-            )}
+            <Link
+              href="/login"
+              className="text-sm font-semibold text-green-100 hover:text-white px-3 py-2 rounded-lg"
+            >
+              Sign In
+            </Link>
+            <Link
+              href="/signup"
+              className="bg-[#F9A825] hover:bg-amber-400 text-[#1B5E20] font-bold text-sm px-4 py-2 rounded-xl transition-all shadow"
+            >
+              Create Account
+            </Link>
           </div>
         </div>
       </header>
@@ -153,16 +110,16 @@ export default function SplashLandingPage() {
 
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Link
-              href={user ? getDashboardUrl() : "/signup"}
+              href="/login"
               className="bg-[#F9A825] hover:bg-amber-400 text-[#1B5E20] px-8 py-3.5 rounded-xl font-black text-base shadow-xl transition-all hover:scale-105 flex items-center gap-2"
             >
-              Get Started Now <ArrowRight className="w-5 h-5" />
+              Sign In & Enter Dashboard <ArrowRight className="w-5 h-5" />
             </Link>
             <Link
-              href="/login"
+              href="/signup"
               className="bg-white/10 hover:bg-white/20 text-white border border-white/30 px-6 py-3.5 rounded-xl font-bold text-base transition-all"
             >
-              🎯 Try Demo Logins
+              Create New Account
             </Link>
           </div>
         </div>
@@ -250,7 +207,7 @@ export default function SplashLandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="text-3xl font-extrabold text-gray-900 mb-2">Tailored Workflows for Every Stakeholder</h2>
-            <p className="text-gray-600 text-sm">Select your role to explore the dedicated dashboard flow</p>
+            <p className="text-gray-600 text-sm">Select your role to sign in and open your dedicated dashboard</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -259,25 +216,21 @@ export default function SplashLandingPage() {
                 role: '🌾 Farmer',
                 desc: 'List produce, check market prices, receive buyer offers, negotiate counters, and view payment status.',
                 cta: 'Sign In as Farmer',
-                email: 'farmer1@kisansetu.demo',
               },
               {
                 role: '🏭 Buyer',
                 desc: 'Browse verified lots, filter by grade/district, review AI match scores, and issue purchase offers.',
                 cta: 'Sign In as Buyer',
-                email: 'buyer1@kisansetu.demo',
               },
               {
                 role: '🤝 FPO Admin',
                 desc: 'Pool member lots into bulk sales, negotiate directly with institutional buyers, and track payouts.',
                 cta: 'Sign In as FPO',
-                email: 'fpo1@kisansetu.demo',
               },
               {
                 role: '👑 Admin',
                 desc: 'View platform KPI metrics, verify user KYC credentials, and resolve contract grievances.',
                 cta: 'Sign In as Admin',
-                email: 'admin@kisansetu.demo',
               },
             ].map(card => (
               <div key={card.role} className="bg-[#F1F8E9] rounded-2xl p-6 border border-green-200 flex flex-col justify-between">
