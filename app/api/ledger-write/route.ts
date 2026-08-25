@@ -45,21 +45,21 @@ export async function POST(request: Request) {
       }
       const delta = trustDeltas[event_type] ?? 0
       if (delta !== 0) {
-        await supabase.rpc('increment_trust_score', { user_id: actor_id, delta })
-          .catch(() => {
-            // Fallback: manual update with bounds
-            return supabase
-              .from('profiles')
-              .select('trust_score')
-              .eq('id', actor_id)
-              .single()
-              .then(({ data }) => {
-                if (data) {
-                  const newScore = Math.max(0, Math.min(100, (data.trust_score ?? 50) + delta))
-                  return supabase.from('profiles').update({ trust_score: newScore }).eq('id', actor_id)
-                }
-              })
-          })
+        try {
+          const { error: rpcError } = await supabase.rpc('increment_trust_score', { user_id: actor_id, delta })
+          if (rpcError) throw rpcError
+        } catch {
+          // Fallback: manual update with bounds (rpc function may not exist yet)
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('trust_score')
+            .eq('id', actor_id)
+            .single()
+          if (profileData) {
+            const newScore = Math.max(0, Math.min(100, (profileData.trust_score ?? 50) + delta))
+            await supabase.from('profiles').update({ trust_score: newScore }).eq('id', actor_id)
+          }
+        }
       }
     }
 

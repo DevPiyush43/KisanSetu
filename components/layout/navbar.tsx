@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -8,8 +8,8 @@ import { Profile } from '@/lib/types'
 import {
   Leaf, LayoutDashboard, TrendingUp, Package, PlusCircle,
   ShoppingCart, FileText, Users, AlertCircle, BarChart2,
-  BookOpen, HandshakeIcon, LogOut, User, ChevronDown,
-  MessageSquare, Shield, Menu, X
+  HandshakeIcon, LogOut, User, ChevronDown,
+  Menu, X
 } from 'lucide-react'
 
 interface NavbarProps {
