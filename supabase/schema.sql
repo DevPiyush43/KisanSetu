@@ -1,7 +1,20 @@
 -- ============================================================
--- KisanSetu Database Schema
+-- KisanSetu Database Schema (RLS-safe version)
 -- Run this entire file in the Supabase SQL Editor
 -- ============================================================
+
+-- ─── HELPER: reads role from JWT, never queries profiles table ─
+create or replace function auth_role()
+returns text
+language sql
+stable
+security definer
+as $$
+  select coalesce(
+    (auth.jwt() -> 'user_metadata' ->> 'role'),
+    (select role from profiles where id = auth.uid())
+  )
+$$;
 
 -- ─── PROFILES ─────────────────────────────────────────────
 create table if not exists profiles (
@@ -28,13 +41,17 @@ alter table profiles enable row level security;
 drop policy if exists "public profile view" on profiles;
 drop policy if exists "users update own profile" on profiles;
 drop policy if exists "insert own profile" on profiles;
+drop policy if exists "admin full access on profiles" on profiles;
+drop policy if exists "profiles_select" on profiles;
+drop policy if exists "profiles_insert" on profiles;
+drop policy if exists "profiles_update" on profiles;
+drop policy if exists "profiles_delete" on profiles;
 
-create policy "public profile view" on profiles for select using (true);
-create policy "users update own profile" on profiles for update using (auth.uid() = id);
-create policy "insert own profile" on profiles for insert with check (auth.uid() = id);
-create policy "admin full access on profiles" on profiles for all using (
-  exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin')
-);
+-- No self-referencing queries → no recursion
+create policy "profiles_select" on profiles for select using (true);
+create policy "profiles_insert" on profiles for insert with check (auth.uid() = id);
+create policy "profiles_update" on profiles for update using (auth.uid() = id or auth_role() = 'admin');
+create policy "profiles_delete" on profiles for delete using (auth_role() = 'admin');
 
 -- ─── MANDI PRICES ─────────────────────────────────────────
 create table if not exists mandi_prices (
@@ -47,10 +64,10 @@ create table if not exists mandi_prices (
 );
 
 alter table mandi_prices enable row level security;
+drop policy if exists "anyone reads prices" on mandi_prices;
+drop policy if exists "admin writes prices" on mandi_prices;
 create policy "anyone reads prices" on mandi_prices for select using (true);
-create policy "admin writes prices" on mandi_prices for all using (
-  exists (select 1 from profiles where id = auth.uid() and role = 'admin')
-);
+create policy "admin writes prices" on mandi_prices for all using (auth_role() = 'admin');
 
 create index if not exists idx_mandi_prices_crop_mandi on mandi_prices(crop, mandi);
 create index if not exists idx_mandi_prices_date on mandi_prices(recorded_on desc);
@@ -67,8 +84,12 @@ create table if not exists fpo_pools (
 );
 
 alter table fpo_pools enable row level security;
-create policy "fpo_admin manages pools" on fpo_pools for all using (fpo_admin_id = auth.uid());
-create policy "buyers view listed pools" on fpo_pools for select using (status = 'listed');
+drop policy if exists "fpo_admin manages pools" on fpo_pools;
+drop policy if exists "buyers view listed pools" on fpo_pools;
+drop policy if exists "fpo_pools_admin_all" on fpo_pools;
+drop policy if exists "fpo_pools_buyer_select" on fpo_pools;
+create policy "fpo_pools_admin_all" on fpo_pools for all using (fpo_admin_id = auth.uid());
+create policy "fpo_pools_buyer_select" on fpo_pools for select using (status = 'listed');
 
 -- ─── LOTS ─────────────────────────────────────────────────
 create table if not exists lots (
@@ -90,13 +111,15 @@ create table if not exists lots (
 );
 
 alter table lots enable row level security;
-create policy "owners manage own lots" on lots
-  for all using (owner_id = auth.uid()) with check (owner_id = auth.uid());
-create policy "buyers view non-draft lots" on lots
-  for select using (status <> 'draft');
-create policy "admin views all lots" on lots for select using (
-  exists (select 1 from profiles where id = auth.uid() and role = 'admin')
-);
+drop policy if exists "owners manage own lots" on lots;
+drop policy if exists "buyers view non-draft lots" on lots;
+drop policy if exists "admin views all lots" on lots;
+drop policy if exists "lots_owner_all" on lots;
+drop policy if exists "lots_public_select" on lots;
+drop policy if exists "lots_admin_select" on lots;
+create policy "lots_owner_all" on lots for all using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+create policy "lots_public_select" on lots for select using (status <> 'draft');
+create policy "lots_admin_select" on lots for select using (auth_role() = 'admin');
 
 create index if not exists idx_lots_status on lots(status);
 create index if not exists idx_lots_crop on lots(crop);
@@ -117,6 +140,9 @@ create table if not exists offers (
 );
 
 alter table offers enable row level security;
+drop policy if exists "buyer manages own offers" on offers;
+drop policy if exists "lot owner sees offers on their lots" on offers;
+drop policy if exists "lot owner updates offer status" on offers;
 create policy "buyer manages own offers" on offers for all using (buyer_id = auth.uid());
 create policy "lot owner sees offers on their lots" on offers for select using (
   exists (select 1 from lots where id = lot_id and owner_id = auth.uid())
@@ -135,17 +161,18 @@ create table if not exists contracts (
   final_price numeric,
   final_quantity numeric,
   terms jsonb,
+  status text default 'active',
   created_at timestamptz default now()
 );
 
 alter table contracts enable row level security;
+drop policy if exists "parties view own contracts" on contracts;
+drop policy if exists "system creates contracts" on contracts;
+drop policy if exists "admin views all contracts" on contracts;
 create policy "parties view own contracts" on contracts for select using (
-  farmer_id = auth.uid() or buyer_id = auth.uid()
+  farmer_id = auth.uid() or buyer_id = auth.uid() or auth_role() = 'admin'
 );
 create policy "system creates contracts" on contracts for insert with check (true);
-create policy "admin views all contracts" on contracts for select using (
-  exists (select 1 from profiles where id = auth.uid() and role = 'admin')
-);
 
 -- ─── PAYMENTS ─────────────────────────────────────────────
 create table if not exists payments (
@@ -159,18 +186,17 @@ create table if not exists payments (
 );
 
 alter table payments enable row level security;
+drop policy if exists "contract parties view payments" on payments;
+drop policy if exists "buyer updates payment" on payments;
+drop policy if exists "admin manages payments" on payments;
+drop policy if exists "system inserts payments" on payments;
 create policy "contract parties view payments" on payments for select using (
-  exists (
-    select 1 from contracts
-    where id = contract_id and (farmer_id = auth.uid() or buyer_id = auth.uid())
-  )
+  exists (select 1 from contracts where id = contract_id and (farmer_id = auth.uid() or buyer_id = auth.uid()))
 );
 create policy "buyer updates payment" on payments for update using (
   exists (select 1 from contracts where id = contract_id and buyer_id = auth.uid())
 );
-create policy "admin manages payments" on payments for all using (
-  exists (select 1 from profiles where id = auth.uid() and role = 'admin')
-);
+create policy "admin manages payments" on payments for all using (auth_role() = 'admin');
 create policy "system inserts payments" on payments for insert with check (true);
 
 -- ─── LEDGER EVENTS ────────────────────────────────────────
@@ -186,6 +212,8 @@ create table if not exists ledger_events (
 );
 
 alter table ledger_events enable row level security;
+drop policy if exists "anyone reads ledger" on ledger_events;
+drop policy if exists "system writes ledger" on ledger_events;
 create policy "anyone reads ledger" on ledger_events for select using (true);
 create policy "system writes ledger" on ledger_events for insert with check (true);
 
@@ -203,11 +231,12 @@ create table if not exists grievances (
 );
 
 alter table grievances enable row level security;
+drop policy if exists "filer views own grievance" on grievances;
+drop policy if exists "filer creates grievance" on grievances;
+drop policy if exists "admin manages grievances" on grievances;
 create policy "filer views own grievance" on grievances for select using (filed_by = auth.uid());
 create policy "filer creates grievance" on grievances for insert with check (filed_by = auth.uid());
-create policy "admin manages grievances" on grievances for all using (
-  exists (select 1 from profiles where id = auth.uid() and role = 'admin')
-);
+create policy "admin manages grievances" on grievances for all using (auth_role() = 'admin');
 
 -- ─── LOGISTICS PROVIDERS ──────────────────────────────────
 create table if not exists logistics_providers (
@@ -223,7 +252,7 @@ create table if not exists logistics_providers (
 );
 
 alter table logistics_providers enable row level security;
+drop policy if exists "anyone reads logistics" on logistics_providers;
+drop policy if exists "admin manages logistics" on logistics_providers;
 create policy "anyone reads logistics" on logistics_providers for select using (true);
-create policy "admin manages logistics" on logistics_providers for all using (
-  exists (select 1 from profiles where id = auth.uid() and role = 'admin')
-);
+create policy "admin manages logistics" on logistics_providers for all using (auth_role() = 'admin');
