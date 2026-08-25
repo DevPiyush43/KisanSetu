@@ -1,14 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Leaf, Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, Info } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function LoginPage() {
-  const router = useRouter()
   const supabase = createClient()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -25,9 +23,10 @@ export default function LoginPage() {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
       if (error) {
-        if (error.message.toLowerCase().includes('email not confirmed')) {
+        if (error.message.toLowerCase().includes('email not confirmed') || error.message.toLowerCase().includes('not confirmed')) {
           setEmailNotConfirmed(true)
-          // Try auto-confirming automatically via admin API endpoint
+          
+          // Automatically auto-confirm via admin endpoint
           const confirmRes = await fetch('/api/auth/confirm-user', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -36,11 +35,11 @@ export default function LoginPage() {
           const confirmData = await confirmRes.json()
 
           if (confirmRes.ok && confirmData.success) {
-            // Retry login
+            // Retry signin
             const { data: retryData, error: retryErr } = await supabase.auth.signInWithPassword({ email, password })
             if (!retryErr && retryData.user) {
-              toast.success('Email confirmed & logged in!')
-              await redirectByRole(retryData.user.id)
+              toast.success('Email auto-confirmed & signed in!')
+              proceedToDashboard(retryData.user.user_metadata?.role, email)
               return
             }
           }
@@ -56,8 +55,8 @@ export default function LoginPage() {
       }
 
       if (data.user) {
-        toast.success('Sign in successful!')
-        await redirectByRole(data.user.id)
+        toast.success('Sign in successful! Redirecting...')
+        proceedToDashboard(data.user.user_metadata?.role, email)
       }
     } catch (err: any) {
       toast.error(err.message || 'Login failed')
@@ -65,33 +64,13 @@ export default function LoginPage() {
     }
   }
 
-  const redirectByRole = async (userId: string) => {
-    try {
-      // 1. Fetch user profile
-      let { data: profile } = await supabase.from('profiles').select('role').eq('id', userId).single()
-
-      // 2. If profile is missing, automatically upsert default profile
-      if (!profile) {
-        const defaultRole = email.includes('buyer') ? 'buyer' : email.includes('admin') ? 'admin' : email.includes('fpo') ? 'fpo_admin' : 'farmer'
-        await supabase.from('profiles').upsert({
-          id: userId,
-          role: defaultRole,
-          full_name: email.split('@')[0],
-          language_pref: 'hi',
-          trust_score: 50,
-        })
-        profile = { role: defaultRole }
-      }
-
-      const role = profile?.role ?? 'farmer'
-      const dest = role === 'buyer' ? '/buyer/browse' : role === 'admin' ? '/admin' : '/dashboard'
-      
-      // Perform full browser navigation so cookies are 100% refreshed across server components
-      window.location.href = dest
-    } catch (err) {
-      console.error('Redirect error:', err)
-      window.location.href = '/dashboard'
-    }
+  const proceedToDashboard = (metadataRole?: string, userEmail?: string) => {
+    const emailStr = userEmail?.toLowerCase() || ''
+    const role = metadataRole || (emailStr.includes('buyer') ? 'buyer' : emailStr.includes('admin') ? 'admin' : emailStr.includes('fpo') ? 'fpo_admin' : 'farmer')
+    const dest = role === 'buyer' ? '/buyer/browse' : role === 'admin' ? '/admin' : '/dashboard'
+    
+    // Fast full navigation to ensure clean cookie propagation
+    window.location.href = dest
   }
 
   const handleAutoConfirm = async () => {
@@ -108,16 +87,16 @@ export default function LoginPage() {
       if (password) {
         const { data: loginData, error } = await supabase.auth.signInWithPassword({ email, password })
         if (!error && loginData.user) {
-          toast.success('Email confirmed & logged in!')
-          await redirectByRole(loginData.user.id)
+          toast.success('Email confirmed & signed in!')
+          proceedToDashboard(loginData.user.user_metadata?.role, email)
           return
         }
       }
-      toast.success('Email confirmed! You can now log in.')
+      toast.success('Email confirmed! You can now sign in.')
       setEmailNotConfirmed(false)
       setLoading(false)
     } else {
-      toast.error(data.error || 'Auto-confirm failed. Check SUPABASE_SERVICE_ROLE_KEY or disable "Confirm Email" in Supabase Auth Settings.')
+      toast.error(data.error || 'Auto-confirm failed. Make sure SUPABASE_SERVICE_ROLE_KEY is set.')
       setLoading(false)
     }
   }
