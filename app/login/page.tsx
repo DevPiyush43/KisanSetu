@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { Leaf, Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react'
+import { Leaf, Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, Info } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function LoginPage() {
@@ -21,50 +21,77 @@ export default function LoginPage() {
     setLoading(true)
     setEmailNotConfirmed(false)
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
-    if (error) {
-      if (error.message.toLowerCase().includes('email not confirmed')) {
-        setEmailNotConfirmed(true)
-        // Try auto-confirming automatically via admin API endpoint
-        const confirmRes = await fetch('/api/auth/confirm-user', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
-        })
-        const confirmData = await confirmRes.json()
+      if (error) {
+        if (error.message.toLowerCase().includes('email not confirmed')) {
+          setEmailNotConfirmed(true)
+          // Try auto-confirming automatically via admin API endpoint
+          const confirmRes = await fetch('/api/auth/confirm-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+          })
+          const confirmData = await confirmRes.json()
 
-        if (confirmRes.ok && confirmData.success) {
-          // Retry login
-          const { data: retryData, error: retryErr } = await supabase.auth.signInWithPassword({ email, password })
-          if (!retryErr && retryData.user) {
-            toast.success('Email confirmed & logged in!')
-            await redirectByRole(retryData.user.id)
-            return
+          if (confirmRes.ok && confirmData.success) {
+            // Retry login
+            const { data: retryData, error: retryErr } = await supabase.auth.signInWithPassword({ email, password })
+            if (!retryErr && retryData.user) {
+              toast.success('Email confirmed & logged in!')
+              await redirectByRole(retryData.user.id)
+              return
+            }
           }
+
+          toast.error('Email not confirmed yet. Click "Auto-Confirm Email" below or check your inbox.')
+          setLoading(false)
+          return
         }
 
-        toast.error('Email not confirmed yet. Click "Auto-Confirm Email" below or check your inbox.')
+        toast.error(error.message)
         setLoading(false)
         return
       }
 
-      toast.error(error.message)
+      if (data.user) {
+        toast.success('Sign in successful!')
+        await redirectByRole(data.user.id)
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Login failed')
       setLoading(false)
-      return
-    }
-
-    if (data.user) {
-      await redirectByRole(data.user.id)
     }
   }
 
   const redirectByRole = async (userId: string) => {
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', userId).single()
-    const role = profile?.role
-    if (role === 'buyer') router.push('/buyer/browse')
-    else if (role === 'admin') router.push('/admin')
-    else router.push('/dashboard')
+    try {
+      // 1. Fetch user profile
+      let { data: profile } = await supabase.from('profiles').select('role').eq('id', userId).single()
+
+      // 2. If profile is missing, automatically upsert default profile
+      if (!profile) {
+        const defaultRole = email.includes('buyer') ? 'buyer' : email.includes('admin') ? 'admin' : email.includes('fpo') ? 'fpo_admin' : 'farmer'
+        await supabase.from('profiles').upsert({
+          id: userId,
+          role: defaultRole,
+          full_name: email.split('@')[0],
+          language_pref: 'hi',
+          trust_score: 50,
+        })
+        profile = { role: defaultRole }
+      }
+
+      const role = profile?.role ?? 'farmer'
+      const dest = role === 'buyer' ? '/buyer/browse' : role === 'admin' ? '/admin' : '/dashboard'
+      
+      // Perform full browser navigation so cookies are 100% refreshed across server components
+      window.location.href = dest
+    } catch (err) {
+      console.error('Redirect error:', err)
+      window.location.href = '/dashboard'
+    }
   }
 
   const handleAutoConfirm = async () => {
@@ -78,7 +105,6 @@ export default function LoginPage() {
     const data = await res.json()
 
     if (res.ok && data.success) {
-      // Retry login with entered password if available
       if (password) {
         const { data: loginData, error } = await supabase.auth.signInWithPassword({ email, password })
         if (!error && loginData.user) {
@@ -106,17 +132,17 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1B5E20] via-[#2D7D32] to-[#388E3C] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur px-4 py-2 rounded-full mb-4">
+        {/* Logo Header */}
+        <div className="text-center mb-6">
+          <Link href="/" className="inline-flex items-center gap-2 bg-white/10 backdrop-blur px-4 py-2 rounded-full mb-3 hover:bg-white/20 transition-all">
             <Leaf className="w-5 h-5 text-[#F9A825]" />
             <span className="text-white font-bold text-lg">KisanSetu</span>
-          </div>
-          <h1 className="text-3xl font-bold text-white">Welcome back</h1>
-          <p className="text-green-200 mt-1">Sign in to your account</p>
+          </Link>
+          <h1 className="text-3xl font-bold text-white">Welcome Back</h1>
+          <p className="text-green-200 mt-1 text-sm">Sign in to access your marketplace dashboard</p>
         </div>
 
-        {/* Card */}
+        {/* Login Card */}
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           {emailNotConfirmed && (
             <div className="mb-5 p-4 bg-amber-50 rounded-xl border border-amber-300 space-y-3">
@@ -178,7 +204,7 @@ export default function LoginPage() {
 
           {/* Demo credentials */}
           <div className="mt-6 p-4 bg-amber-50 rounded-xl border border-amber-200">
-            <p className="text-xs font-semibold text-amber-800 mb-2">🎯 Demo Credentials (password: Demo@1234)</p>
+            <p className="text-xs font-semibold text-amber-800 mb-2">🎯 Quick Demo Logins (password: Demo@1234)</p>
             <div className="grid grid-cols-2 gap-1.5">
               {demoLogins.map(d => (
                 <button key={d.email} type="button"
@@ -188,6 +214,13 @@ export default function LoginPage() {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Splash Info Link */}
+          <div className="mt-4 pt-3 border-t border-gray-100 text-center">
+            <Link href="/" className="text-xs text-gray-400 hover:text-gray-600 inline-flex items-center gap-1">
+              <Info className="w-3.5 h-3.5" /> Learn more about KisanSetu Platform
+            </Link>
           </div>
         </div>
       </div>

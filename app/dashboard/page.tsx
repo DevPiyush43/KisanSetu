@@ -27,7 +27,21 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+  let { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+  
+  if (!profile) {
+    const defaultRole = user.email?.includes('buyer') ? 'buyer' : user.email?.includes('admin') ? 'admin' : user.email?.includes('fpo') ? 'fpo_admin' : 'farmer'
+    await supabase.from('profiles').upsert({
+      id: user.id,
+      role: defaultRole,
+      full_name: user.email?.split('@')[0] ?? 'User',
+      language_pref: 'hi',
+      trust_score: 50,
+    })
+    const { data: createdProfile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+    profile = createdProfile
+  }
+
   if (!profile) redirect('/login')
   if (profile.role === 'buyer') redirect('/buyer/browse')
   if (profile.role === 'admin') redirect('/admin')
