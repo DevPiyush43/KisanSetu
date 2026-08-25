@@ -4,23 +4,9 @@ import { Navbar } from '@/components/layout/navbar'
 import { ChatWidget } from '@/components/chat/chat-widget'
 import { TrendingUp, TrendingDown, Package, PlusCircle, Leaf, ShieldCheck, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
-import { formatCurrency, cropEmoji, getStatusColor, getStatusLabel } from '@/lib/utils'
+import { formatCurrency, cropEmoji, getStatusColor, getStatusLabel, calculateForecast } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
-
-async function getAdvisory(crop: string, mandi: string, prices: number[]) {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
-    const res = await fetch(`${baseUrl}/api/forecast-price`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ crop, mandi, prices }),
-      cache: 'no-store',
-    })
-    if (res.ok) return res.json()
-  } catch {}
-  return null
-}
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -89,7 +75,7 @@ export default async function DashboardPage() {
     .limit(14)
 
   const prices = priceSeries?.map(p => p.price_per_quintal) ?? []
-  const advisory = prices.length >= 3 ? await getAdvisory(firstCrop, district, prices) : null
+  const advisory = prices.length >= 3 ? calculateForecast(firstCrop, district, prices) : null
 
   return (
     <div className="min-h-screen bg-[#F1F8E9]">

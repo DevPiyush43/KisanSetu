@@ -120,3 +120,39 @@ export function timeAgo(dateStr: string): string {
   const days = Math.floor(hrs / 24)
   return `${days}d ago`
 }
+
+export function calculateForecast(crop: string, mandi: string, prices: number[]) {
+  if (!prices || prices.length < 3) {
+    return {
+      recommendation: 'sell_now' as const,
+      confidence: 0.45,
+      reason: 'Insufficient price history. Selling now avoids storage risks.',
+    }
+  }
+  const recent = prices.slice(-7)
+  const slope = computeSlope(recent)
+  const avgPrice = recent.reduce((a, b) => a + b, 0) / recent.length
+  const slopePct = (slope / avgPrice) * 100
+
+  if (slopePct > 1.5) {
+    const confidence = Math.min(0.55 + slopePct * 0.05, 0.92)
+    return {
+      recommendation: 'hold' as const,
+      confidence: parseFloat(confidence.toFixed(2)),
+      reason: `${crop} prices in ${mandi} are trending upward (+${slopePct.toFixed(1)}%/day avg). Holding for 3-5 days may yield better returns if storage is available.`,
+    }
+  } else if (slopePct < -1.5) {
+    const confidence = Math.min(0.55 + Math.abs(slopePct) * 0.05, 0.90)
+    return {
+      recommendation: 'sell_now' as const,
+      confidence: parseFloat(confidence.toFixed(2)),
+      reason: `${crop} prices are declining (${slopePct.toFixed(1)}%/day avg). Selling now minimizes further loss. Consider locking in current rates.`,
+    }
+  } else {
+    return {
+      recommendation: 'sell_now' as const,
+      confidence: 0.52,
+      reason: `${crop} prices in ${mandi} are relatively stable (±1.5%/day). Current price is within normal range — selling now avoids storage cost and uncertainty.`,
+    }
+  }
+}

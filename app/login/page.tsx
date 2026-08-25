@@ -108,6 +108,44 @@ export default function LoginPage() {
     { label: '🤝 FPO', email: 'fpo1@kisansetu.demo' },
   ]
 
+  const handleQuickDemoLogin = async (targetEmail: string) => {
+    setEmail(targetEmail)
+    setPassword('Demo@1234')
+    setLoading(true)
+    setEmailNotConfirmed(false)
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email: targetEmail, password: 'Demo@1234' })
+      if (error) {
+        if (error.message.toLowerCase().includes('not confirmed')) {
+          const confirmRes = await fetch('/api/auth/confirm-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: targetEmail }),
+          })
+          const confirmData = await confirmRes.json()
+          if (confirmRes.ok && confirmData.success) {
+            const { data: retryData, error: retryErr } = await supabase.auth.signInWithPassword({ email: targetEmail, password: 'Demo@1234' })
+            if (!retryErr && retryData.user) {
+              toast.success('Signed in successfully!')
+              proceedToDashboard(retryData.user.user_metadata?.role, targetEmail)
+              return
+            }
+          }
+        }
+        toast.error(error.message)
+        setLoading(false)
+        return
+      }
+      if (data.user) {
+        toast.success('Signed in successfully!')
+        proceedToDashboard(data.user.user_metadata?.role, targetEmail)
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Demo login failed')
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1B5E20] via-[#2D7D32] to-[#388E3C] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -183,12 +221,12 @@ export default function LoginPage() {
 
           {/* Demo credentials */}
           <div className="mt-6 p-4 bg-amber-50 rounded-xl border border-amber-200">
-            <p className="text-xs font-semibold text-amber-800 mb-2">🎯 Quick Demo Logins (password: Demo@1234)</p>
+            <p className="text-xs font-semibold text-amber-800 mb-2">🎯 1-Click Demo Logins (Instant Sign In)</p>
             <div className="grid grid-cols-2 gap-1.5">
               {demoLogins.map(d => (
-                <button key={d.email} type="button"
-                  onClick={() => { setEmail(d.email); setPassword('Demo@1234'); setEmailNotConfirmed(false); }}
-                  className="text-xs bg-white border border-amber-200 hover:border-amber-400 text-amber-800 px-2 py-1.5 rounded-lg text-left hover:bg-amber-50 transition-colors">
+                <button key={d.email} type="button" disabled={loading}
+                  onClick={() => handleQuickDemoLogin(d.email)}
+                  className="text-xs bg-white border border-amber-200 hover:border-amber-400 text-amber-800 px-2 py-1.5 rounded-lg text-left hover:bg-amber-100 transition-colors font-medium">
                   {d.label}
                 </button>
               ))}
