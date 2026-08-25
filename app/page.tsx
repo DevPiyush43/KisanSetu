@@ -113,7 +113,7 @@ export default function SplashLandingPage() {
       <section className="relative overflow-hidden bg-gradient-to-b from-[#1B5E20] to-[#2D7D32] text-white py-16 sm:py-24 px-4">
         <div className="max-w-5xl mx-auto text-center relative z-10">
           <span className="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 px-4 py-1.5 rounded-full text-xs font-semibold text-[#F9A825] mb-6">
-            <Sparkles className="w-4 h-4" /> Smart India Hackathon 2025 • Problem Statement 26132
+            <Sparkles className="w-4 h-4" /> Next-Gen Agri Marketplace & Direct Linkage Platform
           </span>
           <h1 className="text-3xl sm:text-6xl font-black leading-tight tracking-tight mb-6">
             Strengthening Market Linkages & Price Discovery for Every Farmer
@@ -161,7 +161,7 @@ export default function SplashLandingPage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 py-20">
         <div className="text-center max-w-2xl mx-auto mb-14">
           <h2 className="text-3xl font-extrabold text-gray-900 mb-3">Key Features & Technical Architecture</h2>
-          <p className="text-gray-600 text-sm">Everything built for 50% feature depth hackathon prototype</p>
+          <p className="text-gray-600 text-sm">Everything built for transparent, direct farmer-to-buyer trade</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -273,7 +273,7 @@ export default function SplashLandingPage() {
               <span>KisanSetu</span>
             </div>
             <p className="text-xs text-green-200">
-              Built for Smart India Hackathon 2025 • Problem Statement 26132
+              Empowering farmers & buyers with direct market access
             </p>
           </div>
           <div className="text-xs text-green-200">

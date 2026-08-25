@@ -183,4 +183,4 @@ app/
 
 ---
 
-*Built for Smart India Hackathon 2025 — Problem Statement 26132*
+*KisanSetu - Farmers & Buyers Marketplace*
