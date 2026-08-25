@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Leaf, ArrowRight, ArrowLeft, Check, AlertCircle } from 'lucide-react'
@@ -44,7 +43,6 @@ const ROLES = [
 ]
 
 export default function SignupPage() {
-  const router = useRouter()
   const supabase = createClient()
   const [step, setStep] = useState<1 | 2>(1)
   const [selectedRole, setSelectedRole] = useState<Role | null>(null)
@@ -165,7 +163,7 @@ export default function SignupPage() {
         return
       }
       toast.success('Email confirmed! You can now log in.')
-      router.push('/login')
+      window.location.href = '/login'
     } else {
       toast.error(data.error || 'Failed to auto-confirm email')
       setLoading(false)
@@ -173,10 +171,12 @@ export default function SignupPage() {
   }
 
   const redirectUser = (role: Role) => {
-    if (role === 'buyer') router.push('/onboarding/buyer')
-    else if (role === 'farmer' || role === 'fpo_admin') router.push('/onboarding/farmer')
-    else if (role === 'admin') router.push('/admin')
-    else router.push('/dashboard')
+    let dest = '/dashboard'
+    if (role === 'buyer') dest = '/onboarding/buyer'
+    else if (role === 'farmer' || role === 'fpo_admin') dest = '/onboarding/farmer'
+    else if (role === 'admin') dest = '/admin'
+    // Full page navigation ensures cookies are sent to server components
+    window.location.href = dest
   }
 
   return (
