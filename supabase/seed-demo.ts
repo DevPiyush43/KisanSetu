@@ -66,11 +66,24 @@ async function createUser(email: string, name: string, role: string, extraProfil
   })
   
   if (authError) {
-    if (authError.message.includes('already registered')) {
-      console.log(`  ℹ️  ${email} already exists, skipping...`)
+    if (authError.message.toLowerCase().includes('already registered') || authError.message.toLowerCase().includes('already been registered')) {
       const { data: existing } = await supabase.auth.admin.listUsers()
-      const user = existing?.users?.find(u => u.email === email)
-      return user?.id ?? null
+      const user = existing?.users?.find(u => u.email?.toLowerCase() === email.toLowerCase())
+      if (user) {
+        await supabase.auth.admin.updateUserById(user.id, {
+          password: DEMO_PASSWORD,
+          email_confirm: true,
+        })
+        await supabase.from('profiles').upsert({
+          id: user.id,
+          role,
+          full_name: name,
+          trust_score: 50 + Math.floor(Math.random() * 40),
+          ...extraProfile,
+        })
+        console.log(`  🔄 Updated existing user ${email}`)
+        return user.id
+      }
     }
     console.error(`  ❌ Error creating ${email}:`, authError.message)
     return null

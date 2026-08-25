@@ -67,7 +67,7 @@ export default function LoginPage() {
   const proceedToDashboard = (metadataRole?: string, userEmail?: string) => {
     const emailStr = userEmail?.toLowerCase() || ''
     const role = metadataRole || (emailStr.includes('buyer') ? 'buyer' : emailStr.includes('admin') ? 'admin' : emailStr.includes('fpo') ? 'fpo_admin' : 'farmer')
-    const dest = role === 'buyer' ? '/buyer/browse' : role === 'admin' ? '/admin' : '/dashboard'
+    const dest = role === 'buyer' ? '/buyer/browse' : role === 'admin' ? '/admin' : role === 'fpo_admin' ? '/fpo/pool' : '/dashboard'
     
     // Fast full navigation to ensure clean cookie propagation
     window.location.href = dest
