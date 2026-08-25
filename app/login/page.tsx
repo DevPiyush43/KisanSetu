@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { Leaf, Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react'
+import { Leaf, Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function LoginPage() {
@@ -14,22 +14,86 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [emailNotConfirmed, setEmailNotConfirmed] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setEmailNotConfirmed(false)
+
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+
     if (error) {
+      if (error.message.toLowerCase().includes('email not confirmed')) {
+        setEmailNotConfirmed(true)
+        // Try auto-confirming automatically via admin API endpoint
+        const confirmRes = await fetch('/api/auth/confirm-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        })
+        const confirmData = await confirmRes.json()
+
+        if (confirmRes.ok && confirmData.success) {
+          // Retry login
+          const { data: retryData, error: retryErr } = await supabase.auth.signInWithPassword({ email, password })
+          if (!retryErr && retryData.user) {
+            toast.success('Email confirmed & logged in!')
+            await redirectByRole(retryData.user.id)
+            return
+          }
+        }
+
+        toast.error('Email not confirmed yet. Click "Auto-Confirm Email" below or check your inbox.')
+        setLoading(false)
+        return
+      }
+
       toast.error(error.message)
       setLoading(false)
       return
     }
-    // Get role and redirect
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user!.id).single()
+
+    if (data.user) {
+      await redirectByRole(data.user.id)
+    }
+  }
+
+  const redirectByRole = async (userId: string) => {
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', userId).single()
     const role = profile?.role
     if (role === 'buyer') router.push('/buyer/browse')
     else if (role === 'admin') router.push('/admin')
     else router.push('/dashboard')
+  }
+
+  const handleAutoConfirm = async () => {
+    if (!email) { toast.error('Please enter your email address'); return }
+    setLoading(true)
+    const res = await fetch('/api/auth/confirm-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    })
+    const data = await res.json()
+
+    if (res.ok && data.success) {
+      // Retry login with entered password if available
+      if (password) {
+        const { data: loginData, error } = await supabase.auth.signInWithPassword({ email, password })
+        if (!error && loginData.user) {
+          toast.success('Email confirmed & logged in!')
+          await redirectByRole(loginData.user.id)
+          return
+        }
+      }
+      toast.success('Email confirmed! You can now log in.')
+      setEmailNotConfirmed(false)
+      setLoading(false)
+    } else {
+      toast.error(data.error || 'Auto-confirm failed. Check SUPABASE_SERVICE_ROLE_KEY or disable "Confirm Email" in Supabase Auth Settings.')
+      setLoading(false)
+    }
   }
 
   const demoLogins = [
@@ -54,6 +118,21 @@ export default function LoginPage() {
 
         {/* Card */}
         <div className="bg-white rounded-2xl shadow-2xl p-8">
+          {emailNotConfirmed && (
+            <div className="mb-5 p-4 bg-amber-50 rounded-xl border border-amber-300 space-y-3">
+              <div className="flex items-start gap-2 text-amber-900 text-xs">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <span>
+                  <strong>Email not confirmed in Supabase!</strong> Click below to auto-confirm this account instantly for testing/demo.
+                </span>
+              </div>
+              <button type="button" onClick={handleAutoConfirm} disabled={loading}
+                className="w-full bg-[#F9A825] hover:bg-amber-500 text-[#1B5E20] text-xs font-bold py-2.5 rounded-lg transition-all shadow-sm">
+                ⚡ Auto-Confirm Email & Log In Now
+              </button>
+            </div>
+          )}
+
           <form onSubmit={handleLogin} className="space-y-5">
             {/* Email */}
             <div>
@@ -103,7 +182,7 @@ export default function LoginPage() {
             <div className="grid grid-cols-2 gap-1.5">
               {demoLogins.map(d => (
                 <button key={d.email} type="button"
-                  onClick={() => { setEmail(d.email); setPassword('Demo@1234') }}
+                  onClick={() => { setEmail(d.email); setPassword('Demo@1234'); setEmailNotConfirmed(false); }}
                   className="text-xs bg-white border border-amber-200 hover:border-amber-400 text-amber-800 px-2 py-1.5 rounded-lg text-left hover:bg-amber-50 transition-colors">
                   {d.label}
                 </button>
