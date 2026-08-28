@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Navbar } from '@/components/layout/navbar'
 import { ChatWidget } from '@/components/chat/chat-widget'
-import { Lot, CROPS, DISTRICTS, GRADES } from '@/lib/types'
+import { Lot, CROPS, GRADES } from '@/lib/types'
+import { getAllDistricts } from '@/lib/data/india-locations'
 import { formatCurrency, cropEmoji, getStatusColor } from '@/lib/utils'
 import Link from 'next/link'
 import { Filter, Search, ShoppingCart, Star } from 'lucide-react'
@@ -107,7 +108,7 @@ export default function BuyerBrowsePage() {
                 <div>
                   <p className="text-xs font-semibold text-gray-500 uppercase mb-2">District</p>
                   <div className="space-y-1.5">
-                    {DISTRICTS.map(d => (
+                    {getAllDistricts().map(d => (
                       <label key={d} className="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" checked={filters.districts.includes(d)}
                           onChange={() => setFilters(f => ({ ...f, districts: toggle(f.districts, d) }))}

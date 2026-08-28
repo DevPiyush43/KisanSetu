@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Navbar } from '@/components/layout/navbar'
 import { ChatWidget } from '@/components/chat/chat-widget'
 import { useTranslation } from '@/lib/i18n'
-import { DISTRICTS } from '@/lib/types'
+import { getAllDistricts } from '@/lib/data/india-locations'
 import { estimateTransportCost, TransportEstimate } from '@/lib/services/logistics'
 import { Truck, Snowflake, Warehouse, MapPin, Calculator, Phone, ArrowRight } from 'lucide-react'
 
@@ -85,7 +85,7 @@ export default function LogisticsPage() {
                   <select value={fromDistrict} onChange={e => setFromDistrict(e.target.value)}
                     className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#2D7D32]">
                     <option value="">Select</option>
-                    {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+                    {getAllDistricts().map(d => <option key={d} value={d}>{d}</option>)}
                   </select>
                 </div>
                 <div className="flex justify-center">
@@ -96,7 +96,7 @@ export default function LogisticsPage() {
                   <select value={toDistrict} onChange={e => setToDistrict(e.target.value)}
                     className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#2D7D32]">
                     <option value="">Select</option>
-                    {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+                    {getAllDistricts().map(d => <option key={d} value={d}>{d}</option>)}
                   </select>
                 </div>
                 <div>

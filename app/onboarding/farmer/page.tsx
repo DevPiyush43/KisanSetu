@@ -5,14 +5,15 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Leaf, Check } from 'lucide-react'
 import { toast } from 'sonner'
-import { CROPS, DISTRICTS } from '@/lib/types'
+import { CROPS } from '@/lib/types'
+import { LocationSelector } from '@/components/ui/location-selector'
 
 export default function FarmerOnboarding() {
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
-    full_name: '', phone: '', village: '', district: '', language_pref: 'hi'
+    full_name: '', phone: '', village: '', district: '', state: '', language_pref: 'hi'
   })
   const [selectedCrops, setSelectedCrops] = useState<string[]>([])
 
@@ -29,16 +30,22 @@ export default function FarmerOnboarding() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
 
-    const { error } = await supabase.from('profiles').update({
+    const updatePayload: Record<string, unknown> = {
       full_name: form.full_name.trim(),
       phone: form.phone,
       village: form.village,
       district: form.district,
       primary_crops: selectedCrops,
       language_pref: form.language_pref,
-    }).eq('id', user.id)
+    }
+    // Try to save state if column exists
+    const { error } = await supabase.from('profiles').update({ ...updatePayload, state: form.state }).eq('id', user.id)
+    if (error?.message?.includes('schema cache') || error?.message?.includes('Could not find')) {
+      const { error: err2 } = await supabase.from('profiles').update(updatePayload).eq('id', user.id)
+      if (err2) { toast.error('Failed to save profile'); setLoading(false); return }
+    } else if (error) { toast.error('Failed to save profile'); setLoading(false); return }
 
-    if (error) { toast.error('Failed to save profile'); setLoading(false); return }
+
     toast.success('Profile saved! Welcome to KisanSetu 🌾')
     window.location.href = '/dashboard'
   }
@@ -70,13 +77,14 @@ export default function FarmerOnboarding() {
                   placeholder="9876543210"
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2D7D32]" />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">District *</label>
-                <select required value={form.district} onChange={e => setForm(f => ({ ...f, district: e.target.value }))}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2D7D32] bg-white">
-                  <option value="">Select district</option>
-                  {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
-                </select>
+              <div className="col-span-2">
+                <LocationSelector
+                  selectedState={form.state}
+                  selectedDistrict={form.district}
+                  onStateChange={state => setForm(f => ({ ...f, state, district: '' }))}
+                  onDistrictChange={district => setForm(f => ({ ...f, district }))}
+                  required
+                />
               </div>
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Village / Town</label>

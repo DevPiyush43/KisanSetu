@@ -301,9 +301,32 @@ export function ChatWidget() {
     }
     setMessages(prev => [...prev, userMsg])
 
-    // Detect intent and generate response
-    const intent = detectIntent(text)
-    const responseText = await generateResponse(intent, text, supabase, profile)
+    let responseText = ''
+
+    // Try real Gemini AI first
+    try {
+      const res = await fetch('/api/ai-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text.trim(),
+          context: {
+            district: profile?.district,
+            language: profile?.language_pref ?? (text.match(/[\u0900-\u097F]/) ? 'hi' : 'en'),
+          },
+        }),
+      })
+      const data = await res.json()
+      if (res.ok && data.reply) {
+        responseText = data.reply
+      } else {
+        throw new Error(data.error || 'AI unavailable')
+      }
+    } catch {
+      // Fallback to local intent-based response
+      const intent = detectIntent(text)
+      responseText = await generateResponse(intent, text, supabase, profile)
+    }
 
     const aiMsg: ChatMessage = {
       id: (Date.now() + 1).toString(),

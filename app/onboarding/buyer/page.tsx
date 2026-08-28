@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Leaf, Upload } from 'lucide-react'
 import { toast } from 'sonner'
-import { DISTRICTS } from '@/lib/types'
+import { INDIAN_STATES } from '@/lib/data/india-locations'
 
 export default function BuyerOnboarding() {
   const router = useRouter()
@@ -16,6 +16,8 @@ export default function BuyerOnboarding() {
     full_name: '', phone: '', company_name: '', buyer_type: ''
   })
   const [selectedDistricts, setSelectedDistricts] = useState<string[]>([])
+  const [selectedState, setSelectedState] = useState('')
+  const [districtSearch, setDistrictSearch] = useState('')
 
   const toggleDistrict = (d: string) => {
     setSelectedDistricts(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d])
@@ -103,18 +105,61 @@ export default function BuyerOnboarding() {
 
             {/* Operating districts */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Operating Districts * (select all)</label>
-              <div className="flex flex-wrap gap-2">
-                {DISTRICTS.map(d => {
-                  const sel = selectedDistricts.includes(d)
-                  return (
-                    <button key={d} type="button" onClick={() => toggleDistrict(d)}
-                      className={`px-3 py-1.5 rounded-lg border-2 text-sm font-medium transition-all ${sel ? 'border-amber-500 bg-amber-500 text-white' : 'border-gray-200 hover:border-amber-300 text-gray-700'}`}>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Operating Districts * (select from states)</label>
+              
+              {/* State filter */}
+              <select
+                value={selectedState}
+                onChange={e => { setSelectedState(e.target.value); setDistrictSearch('') }}
+                className="w-full px-4 py-2.5 mb-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+              >
+                <option value="">Filter by State / UT</option>
+                {INDIAN_STATES.map(s => (
+                  <option key={s.name} value={s.name}>{s.name}</option>
+                ))}
+              </select>
+              
+              {/* District search */}
+              {selectedState && (
+                <input
+                  type="text"
+                  placeholder="Search districts..."
+                  value={districtSearch}
+                  onChange={e => setDistrictSearch(e.target.value)}
+                  className="w-full px-4 py-2 mb-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 bg-gray-50"
+                />
+              )}
+              
+              {/* Selected districts badges */}
+              {selectedDistricts.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {selectedDistricts.map(d => (
+                    <span key={d} className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-100 text-amber-800 text-xs rounded-full font-medium">
                       {d}
-                    </button>
-                  )
-                })}
-              </div>
+                      <button type="button" onClick={() => toggleDistrict(d)} className="hover:text-amber-600">×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              
+              {/* District options */}
+              {selectedState && (
+                <div className="max-h-36 overflow-y-auto border border-gray-200 rounded-xl p-2">
+                  <div className="flex flex-wrap gap-1.5">
+                    {(INDIAN_STATES.find(s => s.name === selectedState)?.districts ?? [])
+                      .filter(d => !districtSearch || d.toLowerCase().includes(districtSearch.toLowerCase()))
+                      .map(d => {
+                        const sel = selectedDistricts.includes(d)
+                        return (
+                          <button key={d} type="button" onClick={() => toggleDistrict(d)}
+                            className={`px-2.5 py-1 rounded-lg border text-xs font-medium transition-all ${sel ? 'border-amber-500 bg-amber-500 text-white' : 'border-gray-200 hover:border-amber-300 text-gray-700'}`}>
+                            {d}
+                          </button>
+                        )
+                      })}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* KYC upload */}

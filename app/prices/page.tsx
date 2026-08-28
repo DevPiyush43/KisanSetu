@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Navbar } from '@/components/layout/navbar'
 import { ChatWidget } from '@/components/chat/chat-widget'
-import { MandiPrice, ForecastResult, CROPS, DISTRICTS } from '@/lib/types'
+import { MandiPrice, ForecastResult, CROPS } from '@/lib/types'
+import { getAllDistricts } from '@/lib/data/india-locations'
 import { formatCurrency, formatDateShort, cropEmoji } from '@/lib/utils'
 import { useTranslation } from '@/lib/i18n'
 import {
@@ -128,7 +129,7 @@ export default function PricesPage() {
     if (!seenMandi.has(p.mandi)) { seenMandi.add(p.mandi); latestPerMandi.push(p) }
   }
 
-  const activeDistricts = selectedDistrict ? [selectedDistrict] : DISTRICTS
+  const activeDistricts = selectedDistrict ? [selectedDistrict] : getAllDistricts().slice(0, 10)
 
   const trendColor = advisory?.trend === 'rising' ? 'text-green-600'
     : advisory?.trend === 'falling' ? 'text-red-500' : 'text-blue-500'
@@ -163,7 +164,7 @@ export default function PricesPage() {
           <select value={selectedDistrict} onChange={e => setSelectedDistrict(e.target.value)}
             className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#2D7D32] shadow-sm">
             <option value="">All Mandis</option>
-            {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+            {getAllDistricts().map(d => <option key={d} value={d}>{d}</option>)}
           </select>
           <button onClick={fetchPrices}
             className="flex items-center gap-1.5 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm">

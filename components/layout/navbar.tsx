@@ -12,7 +12,7 @@ import {
   LayoutDashboard, TrendingUp, Package, PlusCircle,
   ShoppingCart, FileText, Users, AlertCircle, BarChart2,
   HandshakeIcon, LogOut, User, ChevronDown,
-  Menu, X, Truck,
+  Menu, X, Truck, Sparkles,
 } from 'lucide-react'
 
 interface NavbarProps {
@@ -27,12 +27,13 @@ export function Navbar({ profile }: NavbarProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
 
   const farmerNav = [
-    { href: '/dashboard',    label: t('nav.dashboard'),  icon: LayoutDashboard },
-    { href: '/prices',       label: t('nav.prices'),     icon: TrendingUp },
-    { href: '/lots',         label: t('nav.myLots'),     icon: Package },
-    { href: '/lots/create',  label: t('nav.createLot'),  icon: PlusCircle },
-    { href: '/offers',       label: t('nav.offers'),     icon: FileText },
-    { href: '/logistics',    label: t('nav.logistics'),  icon: Truck },
+    { href: '/dashboard',      label: t('nav.dashboard'),    icon: LayoutDashboard },
+    { href: '/prices',         label: t('nav.prices'),       icon: TrendingUp },
+    { href: '/crop-advisor',   label: 'AI Crop Advisor',     icon: Sparkles },
+    { href: '/lots',           label: t('nav.myLots'),       icon: Package },
+    { href: '/lots/create',    label: t('nav.createLot'),    icon: PlusCircle },
+    { href: '/offers',         label: t('nav.offers'),       icon: FileText },
+    { href: '/logistics',      label: t('nav.logistics'),    icon: Truck },
   ]
 
   const buyerNav = [

@@ -4,12 +4,13 @@ import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Navbar } from '@/components/layout/navbar'
 import { ChatWidget } from '@/components/chat/chat-widget'
-import { CROPS, DISTRICTS, GRADES, UNITS } from '@/lib/types'
+import { CROPS, GRADES, UNITS } from '@/lib/types'
 import { cropEmoji } from '@/lib/utils'
 import { useTranslation } from '@/lib/i18n'
 import { calculateGrade, QualityParams } from '@/lib/services/quality-grading'
 import { Upload, X, Check, ArrowLeft, ArrowRight } from 'lucide-react'
 import { toast } from 'sonner'
+import { LocationSelector } from '@/components/ui/location-selector'
 
 const STEPS = ['Crop Details', 'Quality Assessment', 'Quantity & Price', 'Photos', 'Review & Submit']
 
@@ -24,7 +25,7 @@ export default function CreateLotPage() {
   const [form, setForm] = useState({
     crop: '', variety: '', quality_notes: '',
     quantity: '', unit: 'quintal', expected_price: '',
-    location_district: '', location_village: '', pickup_notes: '',
+    location_district: '', location_village: '', location_state: '', pickup_notes: '',
     // Quality fields
     moisture: '' as '' | 'low' | 'medium' | 'high',
     foreignMatter: '' as '' | 'low' | 'medium' | 'high',
@@ -355,21 +356,21 @@ export default function CreateLotPage() {
                   </p>
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('lot.district')} *</label>
-                  <select value={form.location_district} onChange={e => setForm(fv => ({ ...fv, location_district: e.target.value }))}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2D7D32] bg-white">
-                    <option value="">Select district</option>
-                    {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('lot.village')}</label>
-                  <input type="text" value={form.location_village} onChange={e => setForm(fv => ({ ...fv, location_village: e.target.value }))}
-                    placeholder="Your village"
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2D7D32]" />
-                </div>
+              <div className="col-span-2">
+                <LocationSelector
+                  selectedState={form.location_state}
+                  selectedDistrict={form.location_district}
+                  onStateChange={state => setForm(fv => ({ ...fv, location_state: state, location_district: '' }))}
+                  onDistrictChange={district => setForm(fv => ({ ...fv, location_district: district }))}
+                  label={t('lot.district')}
+                  required
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('lot.village')}</label>
+                <input type="text" value={form.location_village} onChange={e => setForm(fv => ({ ...fv, location_village: e.target.value }))}
+                  placeholder="Your village"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2D7D32]" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('lot.pickupNotes')}</label>
