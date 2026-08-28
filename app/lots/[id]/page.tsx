@@ -6,6 +6,7 @@ import { formatCurrency, formatDate, cropEmoji, getStatusColor, getStatusLabel }
 import Link from 'next/link'
 import { OfferActions } from './offer-actions'
 import { MakeOfferButton } from './make-offer-button'
+import { BestDealFinder } from './best-deal-finder'
 import { ArrowLeft, MapPin, Calendar, Package, Tag, Clock } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -183,6 +184,15 @@ export default async function LotDetailPage({ params }: { params: Promise<{ id: 
               <div className="bg-gray-50 rounded-2xl p-4 text-center border border-gray-200">
                 <p className="text-sm text-gray-600">This lot is <strong>{getStatusLabel(lot.status)}</strong> and not available for new offers.</p>
               </div>
+            )}
+
+            {/* Best Deal Finder for owner */}
+            {isOwner && offers.length > 0 && lot.location_district && (
+              <BestDealFinder
+                lotId={lot.id}
+                farmerDistrict={lot.location_district}
+                quantity={lot.quantity ?? 1}
+              />
             )}
 
             {/* Offers for owner */}

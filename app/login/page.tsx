@@ -12,9 +12,9 @@ import { toast } from 'sonner'
 
 const DEMO_LOGINS = [
   { label: '🌾 Farmer',   email: 'farmer1@kisansetu.demo', role: 'farmer' },
-  { label: '🏭 Buyer',    email: 'buyer1@kisansetu.demo',  role: 'buyer' },
-  { label: '👑 Admin',    email: 'admin@kisansetu.demo',   role: 'admin' },
-  { label: '🤝 FPO',      email: 'fpo1@kisansetu.demo',   role: 'fpo_admin' },
+  { label: '🏢 Buyer',    email: 'buyer1@kisansetu.demo',  role: 'buyer' },
+  { label: '🛡️ Admin',    email: 'admin@kisansetu.demo',   role: 'admin' },
+  { label: '🤝 FPO',      email: 'fpo1@kisansetu.demo',    role: 'fpo_admin' },
 ]
 
 function roleToDestination(role: string): string {
@@ -57,9 +57,6 @@ export default function LoginPage() {
   const [needsConfirm,   setNeedsConfirm]   = useState(false)
   const [showDemo,       setShowDemo]       = useState(false)
 
-  /* ──────────────────────────────────────────────────────────────
-     Core sign-in helper — used by both the form and demo buttons
-  ────────────────────────────────────────────────────────────── */
   async function signIn(targetEmail: string, targetPassword: string) {
     setLoading(true)
     setNeedsConfirm(false)
@@ -76,7 +73,6 @@ export default function LoginPage() {
       return
     }
 
-    // Email not confirmed → auto-confirm then retry once
     if (error && (
       error.message.toLowerCase().includes('not confirmed') ||
       error.message.toLowerCase().includes('email not confirmed')
@@ -100,7 +96,6 @@ export default function LoginPage() {
       return
     }
 
-    // Any other error
     toast.error(error?.message ?? 'Sign-in failed. Please try again.')
     setLoading(false)
   }
@@ -118,330 +113,209 @@ export default function LoginPage() {
     signIn(demo.email, 'Demo@1234')
   }
 
-return (
-  <div className="min-h-screen bg-white flex items-center justify-center p-2 sm:p-4">
+  return (
+    <div className="min-h-screen bg-white flex items-center justify-center p-2 sm:p-4">
+      <div className="w-full min-h-[calc(100vh-1rem)] sm:min-h-[calc(100vh-2rem)] bg-white rounded-[28px] overflow-hidden shadow-sm flex flex-col lg:flex-row">
 
-    {/* MAIN LOGIN CONTAINER */}
-    <div className="w-full min-h-[calc(100vh-1rem)] sm:min-h-[calc(100vh-2rem)] bg-white rounded-[28px] overflow-hidden shadow-sm flex flex-col lg:flex-row">
+        {/* ── LEFT SIDE — background image + branding ── */}
+        <div
+          className="relative w-full lg:w-[52%] min-h-[420px] lg:min-h-full bg-cover bg-center bg-no-repeat rounded-[24px] lg:rounded-[24px] overflow-hidden"
+          style={{ backgroundImage: "url('/login1.jpg')" }}
+        >
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-[#062f2c]/60 pointer-events-none" />
 
-      {/* ========================================= */}
-      {/* LEFT SIDE - IMAGE + KISANSETU CONTENT     */}
-      {/* ========================================= */}
-
-      <div
-        className="relative w-full lg:w-[52%] min-h-[420px] lg:min-h-full bg-cover bg-center bg-no-repeat rounded-[24px] lg:rounded-[24px] overflow-hidden"
-        style={{ backgroundImage: "url('/login1.jpg')" }}
-      >
-
-        {/* Dark overlay */}
-        <div className="absolute inset-0 bg-[#062f2c]/55 pointer-events-none"></div>
-
-        {/* LEFT CONTENT */}
-        <div className="relative z-20 h-full flex flex-col justify-between p-8 sm:p-12 text-white">
-
-          {/* Logo */}
-          <div>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-3 hover:opacity-90 transition-opacity"
-            >
-              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#F9A825] shadow-lg">
-                <Image
-                  src="/kisansetu-logo.png"
-                  alt="KisanSetu Logo"
-                  width={48}
-                  height={48}
-                  className="w-full h-full object-cover"
-                  priority
-                />
-              </div>
-
-              <span className="text-xl sm:text-2xl font-bold">
-                KisanSetu
-              </span>
-            </Link>
-          </div>
-
-
-          {/* Main Text */}
-          <div className="max-w-xl mt-16 lg:mt-0">
-
-            <p className="text-[#F9A825] font-bold text-sm uppercase tracking-widest mb-4">
-              🌾 Empowering Indian Agriculture
-            </p>
-
-            <h1 className="text-4xl sm:text-5xl xl:text-6xl font-black leading-[1.05] tracking-tight mb-6">
-              Connecting
-              <br />
-              <span className="text-[#F9A825]">
-                Farmers
-              </span>
-              <br />
-              to Better Markets
-            </h1>
-
-            <p className="text-green-50 text-base sm:text-lg leading-relaxed max-w-lg">
-              KisanSetu connects farmers and FPOs directly with
-              trusted buyers, helping you discover fair prices,
-              access better markets, and build transparent
-              business relationships.
-            </p>
-
-            {/* Features */}
-            <div className="mt-7 space-y-3">
-
-              <div className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded-full bg-[#F9A825] text-[#1B5E20] flex items-center justify-center font-bold text-sm">
-                  ✓
+          {/* Content */}
+          <div className="relative z-20 h-full flex flex-col justify-between p-8 sm:p-12 text-white">
+            {/* Logo */}
+            <div>
+              <Link href="/" className="inline-flex items-center gap-3 hover:opacity-90 transition-opacity">
+                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#F9A825] shadow-lg">
+                  <Image
+                    src="/kisansetu-logo.png"
+                    alt="KisanSetu Logo"
+                    width={48}
+                    height={48}
+                    className="w-full h-full object-cover"
+                    priority
+                  />
                 </div>
-                <span className="text-sm sm:text-base">
-                  AI-powered price discovery
-                </span>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded-full bg-[#F9A825] text-[#1B5E20] flex items-center justify-center font-bold text-sm">
-                  ✓
-                </div>
-                <span className="text-sm sm:text-base">
-                  Verified and trusted buyers
-                </span>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded-full bg-[#F9A825] text-[#1B5E20] flex items-center justify-center font-bold text-sm">
-                  ✓
-                </div>
-                <span className="text-sm sm:text-base">
-                  Transparent farmer-to-buyer trade
-                </span>
-              </div>
-
+                <span className="text-xl sm:text-2xl font-bold">KisanSetu</span>
+              </Link>
             </div>
 
-          </div>
-
-
-          {/* Bottom text */}
-          <p className="text-green-100/80 text-xs sm:text-sm mt-10">
-            Fair prices • Direct connections • Trusted marketplace
-          </p>
-
-        </div>
-      </div>
-
-
-      {/* ========================================= */}
-      {/* RIGHT SIDE - LOGIN                         */}
-      {/* ========================================= */}
-
-      <div className="w-full lg:w-[48%] bg-white flex items-center justify-center px-6 py-10 sm:px-10 lg:px-14 xl:px-20">
-
-        <div className="w-full max-w-md">
-
-          {/* Welcome */}
-          <div className="text-center mb-8">
-
-            <h1 className="text-3xl font-black text-gray-900 tracking-tight">
-              WELCOME BACK!
-            </h1>
-
-            <p className="text-gray-500 mt-2 text-sm">
-              Welcome back! Please enter your details.
-            </p>
-
-          </div>
-
-
-          {/* LOGIN CARD */}
-          <div className="bg-white">
-
-            {/* Email confirmation */}
-            {needsConfirm && (
-              <div className="mb-6">
-                <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-900">
-                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-
-                  <span>
-                    <strong>Email not yet confirmed.</strong>{" "}
-                    We tried to auto-confirm it — please wait a moment
-                    and click <em>Sign In</em> again, or check your inbox.
-                  </span>
-                </div>
-              </div>
-            )}
-
-
-            {/* FORM */}
-            <form onSubmit={handleSubmit} className="space-y-5">
-
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Email
-                </label>
-
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-
-                  <input
-                    type="email"
-                    required
-                    autoComplete="email"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#2D7D32] focus:border-[#2D7D32] transition-all"
-                  />
-                </div>
-              </div>
-
-
-              {/* Password */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Password
-                </label>
-
-                <div className="relative">
-
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    required
-                    autoComplete="current-password"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#2D7D32] focus:border-[#2D7D32] transition-all"
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(p => !p)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPassword
-                      ? <EyeOff className="w-4 h-4" />
-                      : <Eye className="w-4 h-4" />
-                    }
-                  </button>
-
-                </div>
-              </div>
-
-
-              {/* Sign In Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-[#F9A825] hover:bg-[#064b52] disabled:opacity-60 text-white py-3 rounded-lg font-semibold transition-all shadow-sm hover:shadow-md"
-              >
-                {loading ? (
-                  <div className="w-5 h-5 mx-auto border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <span className="flex items-center justify-center gap-2">
-                    Sign In
-                    <ArrowRight className="w-4 h-4" />
-                  </span>
-                )}
-              </button>
-
-
-              {/* Create account */}
-              <p className="text-center text-sm text-gray-500 pt-2">
-                Don't have an account?{" "}
-                <Link
-                  href="/signup"
-                  className="text-[#075B63] font-semibold hover:underline"
-                >
-                  Sign up
-                </Link>
+            {/* Hero text */}
+            <div className="max-w-xl mt-16 lg:mt-0">
+              <p className="text-[#F9A825] font-bold text-sm uppercase tracking-widest mb-4">
+                🌾 Empowering Indian Agriculture
+              </p>
+              <h2 className="text-4xl sm:text-5xl xl:text-6xl font-black leading-[1.05] tracking-tight mb-6">
+                Connecting<br />
+                <span className="text-[#F9A825]">Farmers</span><br />
+                to Better Markets
+              </h2>
+              <p className="text-green-50 text-base sm:text-lg leading-relaxed max-w-lg">
+                KisanSetu connects farmers and FPOs directly with trusted buyers,
+                helping you discover fair prices, access better markets, and build
+                transparent business relationships.
               </p>
 
-            </form>
-
-
-            {/* Demo Accounts */}
-            <div className="mt-6 border-t border-gray-100 pt-4">
-
-              <button
-                type="button"
-                onClick={() => setShowDemo(v => !v)}
-                className="w-full flex items-center justify-between text-sm text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                <span className="flex items-center gap-2">
-                  <Info className="w-4 h-4" />
-                  Demo accounts for testing
-                </span>
-
-                {showDemo
-                  ? <ChevronUp className="w-4 h-4" />
-                  : <ChevronDown className="w-4 h-4" />
-                }
-              </button>
-
-
-              {showDemo && (
-                <div className="mt-4">
-
-                  <p className="text-xs text-gray-400 mb-3">
-                    Click any role to sign in instantly
-                    (password:{" "}
-                    <code className="bg-gray-100 px-1 rounded">
-                      Demo@1234
-                    </code>)
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-2">
-
-                    {DEMO_LOGINS.map(d => (
-                      <button
-                        key={d.email}
-                        type="button"
-                        disabled={loading}
-                        onClick={() => handleDemoLogin(d)}
-                        className="text-sm bg-[#F1F8E9] border border-green-200 hover:bg-green-100 hover:border-green-400 text-gray-700 px-3 py-2.5 rounded-xl text-left transition-colors font-medium disabled:opacity-50"
-                      >
-                        {d.label}
-                      </button>
-                    ))}
-
+              <div className="mt-7 space-y-3">
+                {[
+                  'AI-powered price discovery',
+                  'Verified and trusted buyers',
+                  'Transparent farmer-to-buyer trade',
+                ].map(feat => (
+                  <div key={feat} className="flex items-center gap-3">
+                    <div className="w-7 h-7 rounded-full bg-[#F9A825] text-[#1B5E20] flex items-center justify-center font-bold text-sm shrink-0">✓</div>
+                    <span className="text-sm sm:text-base">{feat}</span>
                   </div>
+                ))}
+              </div>
+            </div>
 
+            <p className="text-green-100/80 text-xs sm:text-sm mt-10">
+              Fair prices • Direct connections • Trusted marketplace
+            </p>
+          </div>
+        </div>
+
+        {/* ── RIGHT SIDE — login form ── */}
+        <div className="w-full lg:w-[48%] bg-white flex items-center justify-center px-6 py-10 sm:px-10 lg:px-14 xl:px-20">
+          <div className="w-full max-w-md">
+
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-black text-gray-900 tracking-tight">WELCOME BACK!</h1>
+              <p className="text-gray-500 mt-2 text-sm">Welcome back! Please enter your details.</p>
+            </div>
+
+            <div className="bg-white">
+              {/* Email-not-confirmed banner */}
+              {needsConfirm && (
+                <div className="mb-6 flex items-start gap-3 p-4 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-900">
+                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Email not yet confirmed.</strong>{' '}
+                    We tried to auto-confirm it — please wait a moment and click <em>Sign In</em> again, or check your inbox.
+                  </span>
                 </div>
               )}
 
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {/* Email */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <input
+                      id="login-email"
+                      type="email"
+                      required
+                      autoComplete="email"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      placeholder="Enter your email"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#2D7D32] focus:border-[#2D7D32] transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <input
+                      id="login-password"
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#2D7D32] focus:border-[#2D7D32] transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(p => !p)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Submit */}
+                <button
+                  id="login-submit"
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-[#2D7D32] hover:bg-[#1B5E20] disabled:opacity-60 text-white py-3 rounded-lg font-semibold transition-all shadow-sm hover:shadow-md"
+                >
+                  {loading ? (
+                    <div className="w-5 h-5 mx-auto border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <span className="flex items-center justify-center gap-2">
+                      Sign In <ArrowRight className="w-4 h-4" />
+                    </span>
+                  )}
+                </button>
+
+                <p className="text-center text-sm text-gray-500 pt-2">
+                  Don&apos;t have an account?{' '}
+                  <Link href="/signup" className="text-[#2D7D32] font-semibold hover:underline">Sign up</Link>
+                </p>
+              </form>
+
+              {/* Demo accounts */}
+              <div className="mt-6 border-t border-gray-100 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowDemo(v => !v)}
+                  className="w-full flex items-center justify-between text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  <span className="flex items-center gap-2">
+                    <Info className="w-4 h-4" />
+                    Demo accounts for testing
+                  </span>
+                  {showDemo ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+
+                {showDemo && (
+                  <div className="mt-4">
+                    <p className="text-xs text-gray-400 mb-3">
+                      Click any role to sign in instantly (password:{' '}
+                      <code className="bg-gray-100 px-1 rounded">Demo@1234</code>)
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {DEMO_LOGINS.map(d => (
+                        <button
+                          key={d.email}
+                          type="button"
+                          disabled={loading}
+                          onClick={() => handleDemoLogin(d)}
+                          className="text-sm bg-[#F1F8E9] border border-green-200 hover:bg-green-100 hover:border-green-400 text-gray-700 px-3 py-2.5 rounded-xl text-left transition-colors font-medium disabled:opacity-50"
+                        >
+                          {d.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Back to home */}
+              <div className="mt-5 text-center">
+                <Link href="/" className="text-xs text-gray-400 hover:text-gray-600 inline-flex items-center gap-1.5">
+                  <Image src="/kisansetu-logo.png" alt="" width={16} height={16} className="rounded-full" />
+                  Back to KisanSetu home
+                </Link>
+              </div>
             </div>
-
-
-            {/* Back to home */}
-            <div className="mt-5 text-center">
-
-              <Link
-                href="/"
-                className="text-xs text-gray-400 hover:text-gray-600 inline-flex items-center gap-1.5"
-              >
-                <Image
-                  src="/kisansetu-logo.png"
-                  alt=""
-                  width={16}
-                  height={16}
-                  className="rounded-full"
-                />
-
-                Back to KisanSetu home
-              </Link>
-
-            </div>
-
           </div>
-
         </div>
-      </div>
 
+      </div>
     </div>
-  </div>
-)
+  )
 }

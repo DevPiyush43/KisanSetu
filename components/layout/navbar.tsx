@@ -3,54 +3,58 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Profile } from '@/lib/types'
+import { useTranslation } from '@/lib/i18n'
+import { LanguageSwitcher } from './language-switcher'
 import {
   LayoutDashboard, TrendingUp, Package, PlusCircle,
   ShoppingCart, FileText, Users, AlertCircle, BarChart2,
   HandshakeIcon, LogOut, User, ChevronDown,
-  Menu, X
+  Menu, X, Truck,
 } from 'lucide-react'
 
 interface NavbarProps {
   profile: Profile | null
 }
 
-const farmerNav = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/prices', label: 'Prices', icon: TrendingUp },
-  { href: '/lots', label: 'My Lots', icon: Package },
-  { href: '/lots/create', label: 'Create Lot', icon: PlusCircle },
-  { href: '/offers', label: 'Offers', icon: FileText },
-]
-
-const buyerNav = [
-  { href: '/buyer/browse', label: 'Browse Lots', icon: ShoppingCart },
-  { href: '/offers', label: 'My Offers', icon: FileText },
-  { href: '/prices', label: 'Prices', icon: TrendingUp },
-]
-
-const fpoNav = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/lots', label: 'Lots', icon: Package },
-  { href: '/fpo/pool', label: 'FPO Pool', icon: HandshakeIcon },
-  { href: '/offers', label: 'Offers', icon: FileText },
-  { href: '/prices', label: 'Prices', icon: TrendingUp },
-]
-
-const adminNav = [
-  { href: '/admin', label: 'Dashboard', icon: BarChart2 },
-  { href: '/admin/users', label: 'Users', icon: Users },
-  { href: '/admin/grievances', label: 'Grievances', icon: AlertCircle },
-]
-
 export function Navbar({ profile }: NavbarProps) {
-  const router = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
+  const { t } = useTranslation()
   const [menuOpen, setMenuOpen] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
+
+  const farmerNav = [
+    { href: '/dashboard',    label: t('nav.dashboard'),  icon: LayoutDashboard },
+    { href: '/prices',       label: t('nav.prices'),     icon: TrendingUp },
+    { href: '/lots',         label: t('nav.myLots'),     icon: Package },
+    { href: '/lots/create',  label: t('nav.createLot'),  icon: PlusCircle },
+    { href: '/offers',       label: t('nav.offers'),     icon: FileText },
+    { href: '/logistics',    label: t('nav.logistics'),  icon: Truck },
+  ]
+
+  const buyerNav = [
+    { href: '/buyer/browse', label: t('nav.browseLots'), icon: ShoppingCart },
+    { href: '/offers',       label: t('nav.myOffers'),   icon: FileText },
+    { href: '/prices',       label: t('nav.prices'),     icon: TrendingUp },
+    { href: '/logistics',    label: t('nav.logistics'),  icon: Truck },
+  ]
+
+  const fpoNav = [
+    { href: '/dashboard',    label: t('nav.dashboard'),  icon: LayoutDashboard },
+    { href: '/lots',         label: t('nav.myLots'),     icon: Package },
+    { href: '/fpo/pool',     label: t('nav.fpoPool'),    icon: HandshakeIcon },
+    { href: '/offers',       label: t('nav.offers'),     icon: FileText },
+    { href: '/prices',       label: t('nav.prices'),     icon: TrendingUp },
+  ]
+
+  const adminNav = [
+    { href: '/admin',             label: t('nav.admin'),       icon: BarChart2 },
+    { href: '/admin/users',       label: t('nav.users'),       icon: Users },
+    { href: '/admin/grievances',  label: t('nav.grievances'),  icon: AlertCircle },
+  ]
 
   const navItems = profile?.role === 'buyer' ? buyerNav
     : profile?.role === 'fpo_admin' ? fpoNav
@@ -59,7 +63,7 @@ export function Navbar({ profile }: NavbarProps) {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
-    router.push('/login')
+    window.location.href = '/login'
   }
 
   const roleLabel = profile?.role === 'fpo_admin' ? 'FPO Admin'
@@ -67,13 +71,17 @@ export function Navbar({ profile }: NavbarProps) {
     : profile?.role === 'admin' ? 'Admin'
     : 'Farmer'
 
+  const homeHref = profile?.role === 'buyer' ? '/buyer/browse'
+    : profile?.role === 'admin' ? '/admin'
+    : '/dashboard'
+
   return (
     <nav className="bg-[#1B5E20] text-white shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
+
           {/* Logo */}
-          <Link href={profile?.role === 'buyer' ? '/buyer/browse' : profile?.role === 'admin' ? '/admin' : '/dashboard'}
-            className="flex items-center gap-2 font-bold text-xl hover:opacity-90 transition-opacity">
+          <Link href={homeHref} className="flex items-center gap-2 font-bold text-xl hover:opacity-90 transition-opacity">
             <Image
               src="/kisansetu-logo.png"
               alt="KisanSetu Logo"
@@ -101,11 +109,9 @@ export function Navbar({ profile }: NavbarProps) {
           </div>
 
           {/* Right side */}
-          <div className="flex items-center gap-3">
-            {/* Language toggle */}
-            <button className="text-xs font-medium bg-white/10 hover:bg-white/20 px-2 py-1 rounded transition-colors">
-              EN | हि
-            </button>
+          <div className="flex items-center gap-2">
+            {/* Language switcher */}
+            <LanguageSwitcher />
 
             {/* User dropdown */}
             {profile && (
@@ -128,15 +134,25 @@ export function Navbar({ profile }: NavbarProps) {
                     </div>
                     <Link href={`/profile/${profile.id}`}
                       className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                      <User className="w-4 h-4" /> My Profile
+                      <User className="w-4 h-4" /> {t('nav.profile')}
                     </Link>
                     <Link href="/grievances/new"
                       className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                      <AlertCircle className="w-4 h-4" /> File Grievance
+                      <AlertCircle className="w-4 h-4" /> {t('grievance.file')}
+                    </Link>
+                    {profile.role === 'buyer' && (
+                      <Link href="/buyer/verify"
+                        className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        <ShoppingCart className="w-4 h-4" /> {t('buyer.verifyKyc')}
+                      </Link>
+                    )}
+                    <Link href="/voice-demo"
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                      🎙️ {t('voice.title')}
                     </Link>
                     <button onClick={handleSignOut}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50">
-                      <LogOut className="w-4 h-4" /> Sign Out
+                      <LogOut className="w-4 h-4" /> {t('auth.signOut')}
                     </button>
                   </div>
                 )}
