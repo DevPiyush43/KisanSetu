@@ -21,59 +21,97 @@ export function OfferActions({ offers, lotId, userId }: OfferActionsProps) {
 
   const updateOffer = async (offerId: string, status: string, counterPrice?: number) => {
     setLoading(offerId)
+
     const { error } = await supabase
       .from('offers')
       .update({ status, ...(counterPrice ? { counter_price: counterPrice } : {}) })
       .eq('id', offerId)
 
-    if (error) { toast.error('Failed to update offer'); setLoading(null); return }
+    if (error) { toast.error('Failed to update offer: ' + error.message); setLoading(null); return }
 
     if (status === 'accepted') {
-      // Find the offer
       const offer = offers.find(o => o.id === offerId)
-      if (offer) {
-        // Create contract
-        const { data: contract, error: contractErr } = await supabase.from('contracts').insert({
-          offer_id: offerId,
-          lot_id: lotId,
-          farmer_id: userId,
-          buyer_id: offer.buyer_id,
-          final_price: counterPrice ?? offer.price,
-          final_quantity: offer.quantity,
-          terms: {
-            crop: offer.lot?.crop,
-            pickup_date: offer.pickup_date,
-            note: offer.note,
-            signed_at: new Date().toISOString(),
-            payment_terms: '50% advance, 50% on delivery',
-          }
-        }).select('id').single()
+      if (!offer) { toast.error('Offer not found'); setLoading(null); return }
 
-        if (!contractErr && contract) {
-          // Create payment record
-          await supabase.from('payments').insert({
-            contract_id: contract.id,
-            status: 'pending',
-            total_amount: (counterPrice ?? offer.price) * offer.quantity,
-          })
-          // Update lot status
-          await supabase.from('lots').update({ status: 'sold' }).eq('id', lotId)
-          // Write ledger
-          await fetch('/api/ledger-write', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              event_type: 'offer_accepted',
-              ref_id: contract.id,
-              actor_id: userId,
-              payload: { lot_id: lotId, offer_id: offerId, final_price: counterPrice ?? offer.price }
-            }),
-          })
-          toast.success('Offer accepted! Contract created.')
-          router.push(`/contracts/${contract.id}`)
-          return
+      // Fetch lot details for contract terms
+      const { data: lotData } = await supabase
+        .from('lots').select('crop, variety, grade, unit, location_district, location_village')
+        .eq('id', lotId).single()
+
+      const finalPrice = counterPrice ?? offer.price
+      const finalQty = offer.quantity
+
+      // Create contract
+      const { data: contract, error: contractErr } = await supabase.from('contracts').insert({
+        offer_id: offerId,
+        lot_id: lotId,
+        farmer_id: userId,
+        buyer_id: offer.buyer_id,
+        final_price: finalPrice,
+        final_quantity: finalQty,
+        terms: {
+          crop: lotData?.crop ?? offer.lot?.crop,
+          variety: lotData?.variety,
+          grade: lotData?.grade,
+          pickup_date: offer.pickup_date ?? null,
+          note: offer.note ?? null,
+          signed_at: new Date().toISOString(),
+          payment_terms: '25% advance, 75% on delivery',
         }
+      }).select('id').single()
+
+      if (contractErr || !contract) {
+        toast.error('Failed to create contract: ' + (contractErr?.message ?? 'Unknown error'))
+        setLoading(null)
+        return
       }
+
+      // Create payment record — try with all fields, fallback to minimal
+      const paymentPayload: Record<string, unknown> = {
+        contract_id: contract.id,
+        status: 'pending',
+        total_amount: finalPrice * finalQty,
+        amount_paid: 0,
+        updated_by: userId,
+        updated_at: new Date().toISOString(),
+        milestone: 'advance_paid',
+      }
+
+      let { error: payErr } = await supabase.from('payments').insert(paymentPayload)
+
+      if (payErr && (payErr.message?.includes('schema cache') || payErr.message?.includes('Could not find'))) {
+        const fb = await supabase.from('payments').insert({
+          contract_id: contract.id,
+          status: 'pending',
+          total_amount: finalPrice * finalQty,
+          amount_paid: 0,
+        })
+        payErr = fb.error
+      }
+
+      if (payErr) {
+        // Payment failed but contract exists — still redirect, user can refresh
+        console.error('Payment record creation failed:', payErr.message)
+      }
+
+      // Update lot status to sold
+      await supabase.from('lots').update({ status: 'sold' }).eq('id', lotId)
+
+      // Write audit ledger (non-blocking)
+      fetch('/api/ledger-write', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event_type: 'offer_accepted',
+          ref_id: contract.id,
+          actor_id: userId,
+          payload: { lot_id: lotId, offer_id: offerId, final_price: finalPrice }
+        }),
+      }).catch(() => {})
+
+      toast.success('✅ Offer accepted! Contract created.')
+      router.push(`/contracts/${contract.id}`)
+      return
     }
 
     if (status === 'rejected') toast.success('Offer rejected.')

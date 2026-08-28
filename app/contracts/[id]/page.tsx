@@ -16,17 +16,35 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
   if (!user) redirect('/login')
 
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-  const { data: contract } = await supabase
-    .from('contracts')
-    .select(`
-      *,
-      lot:lots(*),
-      farmer:profiles!contracts_farmer_id_fkey(full_name, phone, village, district, trust_score),
-      buyer:profiles!contracts_buyer_id_fkey(full_name, company_name, phone, district, trust_score),
-      payment:payments(*)
-    `)
-    .eq('id', id)
-    .single()
+
+  let contract: any = null
+  try {
+    const { data, error } = await supabase
+      .from('contracts')
+      .select(`
+        *,
+        lot:lots(*),
+        farmer:profiles!farmer_id(full_name, phone, village, district, trust_score),
+        buyer:profiles!buyer_id(full_name, company_name, phone, district, trust_score),
+        payment:payments(*)
+      `)
+      .eq('id', id)
+      .single()
+
+    if (error) {
+      // Fallback query without FK hints if they fail
+      const { data: fallback } = await supabase
+        .from('contracts')
+        .select('*, lot:lots(*), payment:payments(*)')
+        .eq('id', id)
+        .single()
+      contract = fallback
+    } else {
+      contract = data
+    }
+  } catch {
+    contract = null
+  }
 
   if (!contract) notFound()
 
@@ -39,6 +57,20 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
 
   const totalValue = (contract.final_price ?? 0) * (contract.final_quantity ?? 0)
   const payment = Array.isArray(contract.payment) ? contract.payment[0] : contract.payment
+
+  // Fetch farmer & buyer profiles separately if FK hints failed
+  let farmerProfile = contract.farmer
+  let buyerProfile = contract.buyer
+  if (!farmerProfile && contract.farmer_id) {
+    const { data } = await supabase.from('profiles').select('full_name, phone, village, district, trust_score').eq('id', contract.farmer_id).single()
+    farmerProfile = data
+  }
+  if (!buyerProfile && contract.buyer_id) {
+    const { data } = await supabase.from('profiles').select('full_name, company_name, phone, district, trust_score').eq('id', contract.buyer_id).single()
+    buyerProfile = data
+  }
+  contract.farmer = farmerProfile
+  contract.buyer = buyerProfile
 
   return (
     <div className="min-h-screen bg-[#F1F8E9]">
