@@ -196,7 +196,6 @@ async function generateResponse(
         .limit(5)
 
       if (prices && prices.length > 0) {
-        const latest = prices[0]
         const trend = calculateTrend(prices.map(p => p.price_per_quintal))
         const trendEmoji = { rising: '⬆️', falling: '⬇️', stable: '→' }[trend]
         const trendLabel = { rising: 'Rising', falling: 'Falling', stable: 'Stable' }[trend]

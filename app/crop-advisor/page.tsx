@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Navbar } from '@/components/layout/navbar'
 import { ChatWidget } from '@/components/chat/chat-widget'
 import { LocationSelector } from '@/components/ui/location-selector'
@@ -56,14 +56,14 @@ export default function CropRecommendPage() {
   const [expandedCrop, setExpandedCrop] = useState<string | null>(null)
 
   // Load profile
-  useState(() => {
+  useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
         supabase.from('profiles').select('*').eq('id', data.user.id).single()
           .then(({ data: p }) => { if (p) setProfile(p) })
       }
     })
-  })
+  }, [])
 
   const handleRecommend = async () => {
     if (!district || !season) {

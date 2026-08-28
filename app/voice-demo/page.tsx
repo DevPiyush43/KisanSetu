@@ -26,7 +26,7 @@ export default function VoiceDemoPage() {
   const { t } = useTranslation()
   const [profile, setProfile] = useState<any>(null)
   const [callActive, setCallActive] = useState(false)
-  const [callStep, setCallStep] = useState(-1)
+  const [, setCallStep] = useState(-1)
   const [transcript, setTranscript] = useState<Array<{ role: 'ai' | 'user'; text: string }>>([])
   const [aiSpeaking, setAiSpeaking] = useState(false)
   const [userSpeaking, setUserSpeaking] = useState(false)
