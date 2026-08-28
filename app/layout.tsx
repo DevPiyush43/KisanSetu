@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'sonner'
+import { I18nProvider } from '@/lib/i18n'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -20,8 +21,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${inter.className} bg-[#F1F8E9] min-h-screen`}>
-        {children}
-        <Toaster richColors position="top-right" />
+        <I18nProvider>
+          {children}
+          <Toaster richColors position="top-right" />
+        </I18nProvider>
       </body>
     </html>
   )

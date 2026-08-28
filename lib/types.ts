@@ -7,6 +7,8 @@ export type PoolStatus = 'open' | 'listed' | 'closed'
 export type LogisticsType = 'transporter' | 'cold_storage' | 'warehouse'
 export type BuyerType = 'processor' | 'trader' | 'institutional'
 
+export type KycStatus = 'not_submitted' | 'pending' | 'verified' | 'rejected'
+
 export interface Profile {
   id: string
   role: Role
@@ -24,6 +26,19 @@ export interface Profile {
   language_pref: string
   trust_score: number
   created_at: string
+  // KYC fields
+  gst_number?: string | null
+  pan_number?: string | null
+  bank_name?: string | null
+  bank_account_number?: string | null
+  bank_ifsc?: string | null
+  bank_verified?: boolean
+  business_registration_url?: string | null
+  gst_certificate_url?: string | null
+  kyc_status?: KycStatus
+  kyc_reviewed_at?: string | null
+  kyc_reviewed_by?: string | null
+  kyc_rejection_reason?: string | null
 }
 
 export interface MandiPrice {
@@ -64,6 +79,13 @@ export interface Lot {
   pickup_notes: string | null
   status: LotStatus
   created_at: string
+  // Quality assessment fields
+  moisture_content?: string | null
+  foreign_matter?: string | null
+  damage_percent?: string | null
+  harvest_date?: string | null
+  storage_method?: string | null
+  quality_score?: number | null
   // joined
   owner?: Profile
   pool?: FpoPool
@@ -112,6 +134,13 @@ export interface Payment {
   total_amount: number | null
   updated_by: string | null
   updated_at: string
+  // Milestone fields
+  milestone?: string | null
+  payment_method?: string | null
+  transaction_id?: string | null
+  advance_amount?: number
+  advance_paid_at?: string | null
+  full_payment_at?: string | null
 }
 
 export interface LedgerEvent {
@@ -169,7 +198,7 @@ export interface MatchScoreResult {
   }
 }
 
-export const CROPS = ['Wheat', 'Paddy', 'Cotton', 'Soybean', 'Tomato'] as const
+export const CROPS = ['Wheat', 'Paddy', 'Cotton', 'Soybean', 'Tomato', 'Mustard', 'Chickpea', 'Maize'] as const
 export const DISTRICTS = ['Indore', 'Bhopal', 'Nagpur', 'Pune', 'Jaipur'] as const
 export const MANDIS: Record<string, string> = {
   'Indore': 'Madhya Pradesh',
@@ -178,7 +207,7 @@ export const MANDIS: Record<string, string> = {
   'Pune': 'Maharashtra',
   'Jaipur': 'Rajasthan',
 }
-export const GRADES = ['A', 'B', 'C', 'Premium'] as const
+export const GRADES = ['Premium', 'A', 'B', 'C'] as const
 export const UNITS = ['quintal', 'kg', 'tonne'] as const
 export const CROP_EMOJI: Record<string, string> = {
   'Wheat': '🌾',
@@ -186,4 +215,7 @@ export const CROP_EMOJI: Record<string, string> = {
   'Cotton': '☁️',
   'Soybean': '🫘',
   'Tomato': '🍅',
+  'Mustard': '🌻',
+  'Chickpea': '🫛',
+  'Maize': '🌽',
 }
