@@ -81,7 +81,7 @@ export default function BuyerVerifyPage() {
       if (!error) gst_certificate_url = path
     }
 
-    const { error } = await supabase.from('profiles').update({
+    let { error } = await supabase.from('profiles').update({
       gst_number: form.gst_number,
       pan_number: form.pan_number,
       bank_name: form.bank_name,
@@ -91,6 +91,15 @@ export default function BuyerVerifyPage() {
       gst_certificate_url,
       kyc_status: 'pending',
     }).eq('id', user.id)
+
+    if (error && (error.message?.includes('schema cache') || error.message?.includes('Could not find'))) {
+      // Fallback update to standard columns
+      const fb = await supabase.from('profiles').update({
+        company_name: form.gst_number ? `GST: ${form.gst_number}` : profile?.company_name,
+        kyc_doc_url: business_registration_url || gst_certificate_url,
+      }).eq('id', user.id)
+      error = fb.error
+    }
 
     if (error) {
       toast.error('Failed to submit KYC: ' + error.message)

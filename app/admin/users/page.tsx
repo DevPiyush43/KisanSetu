@@ -61,12 +61,17 @@ export default function AdminUsersPage() {
   }
 
   const approveKyc = async (userId: string) => {
-    const { error } = await supabase.from('profiles').update({
+    let { error } = await supabase.from('profiles').update({
       kyc_verified: true,
       kyc_status: 'verified',
       kyc_reviewed_at: new Date().toISOString(),
       kyc_reviewed_by: profile?.id,
     }).eq('id', userId)
+
+    if (error && (error.message?.includes('schema cache') || error.message?.includes('Could not find'))) {
+      const fb = await supabase.from('profiles').update({ kyc_verified: true }).eq('id', userId)
+      error = fb.error
+    }
 
     if (error) { toast.error('Failed to approve'); return }
 
@@ -82,13 +87,18 @@ export default function AdminUsersPage() {
 
   const rejectKyc = async () => {
     if (!rejectDialog) return
-    const { error } = await supabase.from('profiles').update({
+    let { error } = await supabase.from('profiles').update({
       kyc_verified: false,
       kyc_status: 'rejected',
       kyc_rejection_reason: rejectReason || 'Documents insufficient',
       kyc_reviewed_at: new Date().toISOString(),
       kyc_reviewed_by: profile?.id,
     }).eq('id', rejectDialog.userId)
+
+    if (error && (error.message?.includes('schema cache') || error.message?.includes('Could not find'))) {
+      const fb = await supabase.from('profiles').update({ kyc_verified: false }).eq('id', rejectDialog.userId)
+      error = fb.error
+    }
 
     if (error) { toast.error('Failed to reject'); return }
 

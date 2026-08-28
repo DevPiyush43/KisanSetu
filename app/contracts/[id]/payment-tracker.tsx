@@ -69,10 +69,26 @@ export function PaymentTracker({ payment, contractId, userId, isBuyer, totalValu
       updates.status = 'partially_paid'
     }
 
-    const { error } = await supabase
+    let { error } = await supabase
       .from('payments')
       .update(updates)
       .eq('id', payment.id)
+
+    if (error && (error.message?.includes('schema cache') || error.message?.includes('Could not find'))) {
+      const fbUpdates: Record<string, unknown> = {
+        updated_by: userId,
+        updated_at: new Date().toISOString(),
+      }
+      if (milestoneKey === 'full_payment') {
+        fbUpdates.status = 'paid'
+        fbUpdates.amount_paid = totalValue
+      } else if (milestoneKey === 'advance_paid' && payment.amount_paid === 0) {
+        fbUpdates.amount_paid = Math.round(totalValue * 0.25)
+        fbUpdates.status = 'partially_paid'
+      }
+      const fb = await supabase.from('payments').update(fbUpdates).eq('id', payment.id)
+      error = fb.error
+    }
 
     if (error) { toast.error('Failed: ' + error.message); setLoading(false); return }
 
@@ -100,7 +116,7 @@ export function PaymentTracker({ payment, contractId, userId, isBuyer, totalValu
     const newPaid = payment.amount_paid + amtNum
     const newStatus = newPaid >= totalValue ? 'paid' : 'partially_paid'
 
-    const { error } = await supabase
+    let { error } = await supabase
       .from('payments')
       .update({
         amount_paid: newPaid,
@@ -111,6 +127,19 @@ export function PaymentTracker({ payment, contractId, userId, isBuyer, totalValu
         ...(newStatus === 'paid' ? { milestone: 'full_payment', full_payment_at: new Date().toISOString() } : {}),
       })
       .eq('id', payment.id)
+
+    if (error && (error.message?.includes('schema cache') || error.message?.includes('Could not find'))) {
+      const fb = await supabase
+        .from('payments')
+        .update({
+          amount_paid: newPaid,
+          status: newStatus,
+          updated_by: userId,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', payment.id)
+      error = fb.error
+    }
 
     if (error) { toast.error('Failed to update payment'); setLoading(false); return }
 

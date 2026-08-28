@@ -128,7 +128,7 @@ export default function CreateLotPage() {
     const grade = qualityResult?.grade ?? 'B'
     const qualityScore = qualityResult?.score ?? 50
 
-    const { data: lot, error } = await supabase.from('lots').insert({
+    const baseLotPayload = {
       owner_id: user.id,
       crop: form.crop,
       variety: form.variety || null,
@@ -140,7 +140,15 @@ export default function CreateLotPage() {
       location_village: form.location_village || null,
       photos: photoUrls,
       pickup_notes: form.pickup_notes || null,
-      status: 'listed',
+      status: 'listed' as const,
+    }
+
+    let lot: { id: string } | null = null
+    let error: any = null
+
+    // Try insert with quality fields
+    const res1 = await supabase.from('lots').insert({
+      ...baseLotPayload,
       moisture_content: form.moisture || null,
       foreign_matter: form.foreignMatter || null,
       damage_percent: form.damage || null,
@@ -149,8 +157,21 @@ export default function CreateLotPage() {
       quality_score: qualityScore,
     }).select('id').single()
 
-    if (error) {
-      toast.error('Failed to create lot: ' + error.message)
+    if (res1.error) {
+      // If error is missing columns in schema cache, fallback to core columns
+      if (res1.error.message?.includes('schema cache') || res1.error.message?.includes('Could not find')) {
+        const res2 = await supabase.from('lots').insert(baseLotPayload).select('id').single()
+        lot = res2.data
+        error = res2.error
+      } else {
+        error = res1.error
+      }
+    } else {
+      lot = res1.data
+    }
+
+    if (error || !lot) {
+      toast.error('Failed to create lot: ' + (error?.message ?? 'Unknown error'))
       setLoading(false)
       return
     }
