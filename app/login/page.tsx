@@ -118,158 +118,330 @@ export default function LoginPage() {
     signIn(demo.email, 'Demo@1234')
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1B5E20] via-[#2D7D32] to-[#388E3C] flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+return (
+  <div className="min-h-screen bg-white flex items-center justify-center p-2 sm:p-4">
 
-        {/* ── Logo ── */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex flex-col items-center gap-3 hover:opacity-90 transition-opacity mb-2">
-            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-[#F9A825] shadow-2xl">
-              <Image
-                src="/kisansetu-logo.png"
-                alt="KisanSetu Logo"
-                width={96}
-                height={96}
-                className="w-full h-full object-cover"
-                priority
-              />
-            </div>
-            <span className="text-white font-bold text-2xl tracking-tight">KisanSetu</span>
-          </Link>
-          <h1 className="text-2xl font-extrabold text-white">Welcome Back</h1>
-          <p className="text-green-200 mt-1 text-sm">Sign in to access your dashboard</p>
-        </div>
+    {/* MAIN LOGIN CONTAINER */}
+    <div className="w-full min-h-[calc(100vh-1rem)] sm:min-h-[calc(100vh-2rem)] bg-white rounded-[28px] overflow-hidden shadow-sm flex flex-col lg:flex-row">
 
-        {/* ── Card ── */}
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+      {/* ========================================= */}
+      {/* LEFT SIDE - IMAGE + KISANSETU CONTENT     */}
+      {/* ========================================= */}
 
-          {/* Email-not-confirmed banner */}
-          {needsConfirm && (
-            <div className="px-8 pt-6 pb-0">
-              <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-900">
-                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                <span>
-                  <strong>Email not yet confirmed.</strong> We tried to auto-confirm it — please wait a moment and click <em>Sign In</em> again, or check your inbox.
+      <div
+        className="relative w-full lg:w-[52%] min-h-[420px] lg:min-h-full bg-cover bg-center bg-no-repeat rounded-[24px] lg:rounded-[24px] overflow-hidden"
+        style={{ backgroundImage: "url('/login1.jpg')" }}
+      >
+
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-[#062f2c]/55 pointer-events-none"></div>
+
+        {/* LEFT CONTENT */}
+        <div className="relative z-20 h-full flex flex-col justify-between p-8 sm:p-12 text-white">
+
+          {/* Logo */}
+          <div>
+            <Link
+              href="/"
+              className="inline-flex items-center gap-3 hover:opacity-90 transition-opacity"
+            >
+              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#F9A825] shadow-lg">
+                <Image
+                  src="/kisansetu-logo.png"
+                  alt="KisanSetu Logo"
+                  width={48}
+                  height={48}
+                  className="w-full h-full object-cover"
+                  priority
+                />
+              </div>
+
+              <span className="text-xl sm:text-2xl font-bold">
+                KisanSetu
+              </span>
+            </Link>
+          </div>
+
+
+          {/* Main Text */}
+          <div className="max-w-xl mt-16 lg:mt-0">
+
+            <p className="text-[#F9A825] font-bold text-sm uppercase tracking-widest mb-4">
+              🌾 Empowering Indian Agriculture
+            </p>
+
+            <h1 className="text-4xl sm:text-5xl xl:text-6xl font-black leading-[1.05] tracking-tight mb-6">
+              Connecting
+              <br />
+              <span className="text-[#F9A825]">
+                Farmers
+              </span>
+              <br />
+              to Better Markets
+            </h1>
+
+            <p className="text-green-50 text-base sm:text-lg leading-relaxed max-w-lg">
+              KisanSetu connects farmers and FPOs directly with
+              trusted buyers, helping you discover fair prices,
+              access better markets, and build transparent
+              business relationships.
+            </p>
+
+            {/* Features */}
+            <div className="mt-7 space-y-3">
+
+              <div className="flex items-center gap-3">
+                <div className="w-7 h-7 rounded-full bg-[#F9A825] text-[#1B5E20] flex items-center justify-center font-bold text-sm">
+                  ✓
+                </div>
+                <span className="text-sm sm:text-base">
+                  AI-powered price discovery
                 </span>
               </div>
-            </div>
-          )}
 
-          {/* ── Form ── */}
-          <form onSubmit={handleSubmit} className="p-8 space-y-5">
-
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                <input
-                  type="email"
-                  required
-                  autoComplete="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2D7D32] transition-all"
-                />
+              <div className="flex items-center gap-3">
+                <div className="w-7 h-7 rounded-full bg-[#F9A825] text-[#1B5E20] flex items-center justify-center font-bold text-sm">
+                  ✓
+                </div>
+                <span className="text-sm sm:text-base">
+                  Verified and trusted buyers
+                </span>
               </div>
-            </div>
 
-            {/* Password */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full pl-10 pr-10 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2D7D32] transition-all"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(p => !p)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+              <div className="flex items-center gap-3">
+                <div className="w-7 h-7 rounded-full bg-[#F9A825] text-[#1B5E20] flex items-center justify-center font-bold text-sm">
+                  ✓
+                </div>
+                <span className="text-sm sm:text-base">
+                  Transparent farmer-to-buyer trade
+                </span>
               </div>
+
             </div>
 
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-[#2D7D32] hover:bg-[#1B5E20] disabled:opacity-60 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg"
-            >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>Sign In <ArrowRight className="w-4 h-4" /></>
-              )}
-            </button>
+          </div>
 
-            <p className="text-center text-sm text-gray-500">
-              Don&apos;t have an account?{' '}
-              <Link href="/signup" className="text-[#2D7D32] font-semibold hover:underline">
-                Create account
-              </Link>
+
+          {/* Bottom text */}
+          <p className="text-green-100/80 text-xs sm:text-sm mt-10">
+            Fair prices • Direct connections • Trusted marketplace
+          </p>
+
+        </div>
+      </div>
+
+
+      {/* ========================================= */}
+      {/* RIGHT SIDE - LOGIN                         */}
+      {/* ========================================= */}
+
+      <div className="w-full lg:w-[48%] bg-white flex items-center justify-center px-6 py-10 sm:px-10 lg:px-14 xl:px-20">
+
+        <div className="w-full max-w-md">
+
+          {/* Welcome */}
+          <div className="text-center mb-8">
+
+            <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+              WELCOME BACK!
+            </h1>
+
+            <p className="text-gray-500 mt-2 text-sm">
+              Welcome back! Please enter your details.
             </p>
-          </form>
 
-          {/* ── Demo Logins (collapsible) ── */}
-          <div className="border-t border-gray-100">
-            <button
-              type="button"
-              onClick={() => setShowDemo(v => !v)}
-              className="w-full flex items-center justify-between px-8 py-4 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              <span className="flex items-center gap-2">
-                <Info className="w-4 h-4" />
-                Demo accounts for testing
-              </span>
-              {showDemo ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button>
+          </div>
 
-            {showDemo && (
-              <div className="px-8 pb-6">
-                <p className="text-xs text-gray-400 mb-3">
-                  Click any role to sign in instantly (password: <code className="bg-gray-100 px-1 rounded">Demo@1234</code>)
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  {DEMO_LOGINS.map(d => (
-                    <button
-                      key={d.email}
-                      type="button"
-                      disabled={loading}
-                      onClick={() => handleDemoLogin(d)}
-                      className="text-sm bg-[#F1F8E9] border border-green-200 hover:bg-green-100 hover:border-green-400 text-gray-700 px-3 py-2.5 rounded-xl text-left transition-colors font-medium disabled:opacity-50"
-                    >
-                      {d.label}
-                    </button>
-                  ))}
+
+          {/* LOGIN CARD */}
+          <div className="bg-white">
+
+            {/* Email confirmation */}
+            {needsConfirm && (
+              <div className="mb-6">
+                <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-900">
+                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+
+                  <span>
+                    <strong>Email not yet confirmed.</strong>{" "}
+                    We tried to auto-confirm it — please wait a moment
+                    and click <em>Sign In</em> again, or check your inbox.
+                  </span>
                 </div>
               </div>
             )}
+
+
+            {/* FORM */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Email
+                </label>
+
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+
+                  <input
+                    type="email"
+                    required
+                    autoComplete="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#2D7D32] focus:border-[#2D7D32] transition-all"
+                  />
+                </div>
+              </div>
+
+
+              {/* Password */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Password
+                </label>
+
+                <div className="relative">
+
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#2D7D32] focus:border-[#2D7D32] transition-all"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(p => !p)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword
+                      ? <EyeOff className="w-4 h-4" />
+                      : <Eye className="w-4 h-4" />
+                    }
+                  </button>
+
+                </div>
+              </div>
+
+
+              {/* Sign In Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#F9A825] hover:bg-[#064b52] disabled:opacity-60 text-white py-3 rounded-lg font-semibold transition-all shadow-sm hover:shadow-md"
+              >
+                {loading ? (
+                  <div className="w-5 h-5 mx-auto border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <span className="flex items-center justify-center gap-2">
+                    Sign In
+                    <ArrowRight className="w-4 h-4" />
+                  </span>
+                )}
+              </button>
+
+
+              {/* Create account */}
+              <p className="text-center text-sm text-gray-500 pt-2">
+                Don't have an account?{" "}
+                <Link
+                  href="/signup"
+                  className="text-[#075B63] font-semibold hover:underline"
+                >
+                  Sign up
+                </Link>
+              </p>
+
+            </form>
+
+
+            {/* Demo Accounts */}
+            <div className="mt-6 border-t border-gray-100 pt-4">
+
+              <button
+                type="button"
+                onClick={() => setShowDemo(v => !v)}
+                className="w-full flex items-center justify-between text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <span className="flex items-center gap-2">
+                  <Info className="w-4 h-4" />
+                  Demo accounts for testing
+                </span>
+
+                {showDemo
+                  ? <ChevronUp className="w-4 h-4" />
+                  : <ChevronDown className="w-4 h-4" />
+                }
+              </button>
+
+
+              {showDemo && (
+                <div className="mt-4">
+
+                  <p className="text-xs text-gray-400 mb-3">
+                    Click any role to sign in instantly
+                    (password:{" "}
+                    <code className="bg-gray-100 px-1 rounded">
+                      Demo@1234
+                    </code>)
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-2">
+
+                    {DEMO_LOGINS.map(d => (
+                      <button
+                        key={d.email}
+                        type="button"
+                        disabled={loading}
+                        onClick={() => handleDemoLogin(d)}
+                        className="text-sm bg-[#F1F8E9] border border-green-200 hover:bg-green-100 hover:border-green-400 text-gray-700 px-3 py-2.5 rounded-xl text-left transition-colors font-medium disabled:opacity-50"
+                      >
+                        {d.label}
+                      </button>
+                    ))}
+
+                  </div>
+
+                </div>
+              )}
+
+            </div>
+
+
+            {/* Back to home */}
+            <div className="mt-5 text-center">
+
+              <Link
+                href="/"
+                className="text-xs text-gray-400 hover:text-gray-600 inline-flex items-center gap-1.5"
+              >
+                <Image
+                  src="/kisansetu-logo.png"
+                  alt=""
+                  width={16}
+                  height={16}
+                  className="rounded-full"
+                />
+
+                Back to KisanSetu home
+              </Link>
+
+            </div>
+
           </div>
 
-          <div className="border-t border-gray-100 px-8 py-3 text-center">
-            <Link href="/" className="text-xs text-gray-400 hover:text-gray-600 inline-flex items-center gap-1.5">
-              <Image src="/kisansetu-logo.png" alt="" width={16} height={16} className="rounded-full" />
-              Back to KisanSetu home
-            </Link>
-          </div>
         </div>
       </div>
+
     </div>
-  )
+  </div>
+)
 }
