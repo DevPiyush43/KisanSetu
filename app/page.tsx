@@ -35,47 +35,63 @@ export default function SplashLandingPage() {
     <div className="min-h-screen bg-[#F1F8E9] text-gray-800 font-sans selection:bg-[#2D7D32] selection:text-white">
       {/* ─── 1. ANIMATED INTRO SPLASH OVERLAY ─── */}
       {showSplash && (
-        <div className="fixed inset-0 z-50 bg-gradient-to-br from-[#1B5E20] via-[#2D7D32] to-[#144217] flex flex-col items-center justify-center p-6 text-white text-center transition-opacity duration-700">
-          <div className="animate-bounce mb-6">
-            <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-[#F9A825] shadow-2xl">
-              <Image
-                src="/kisansetu-logo.png"
-                alt="KisanSetu Logo"
-                width={112}
-                height={112}
-                className="w-full h-full object-cover"
-                priority
-              />
-            </div>
-          </div>
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-2">KisanSetu</h1>
-          <p className="text-green-200 text-lg max-w-md mb-6 font-medium">
-            Bridging Farmers & Buyers with Transparent Price Discovery & Trusted Direct Linkages
-          </p>
 
-          {/* Progress Bar */}
-          <div className="w-64 bg-white/20 rounded-full h-2 mb-6 overflow-hidden">
-            <div
-              className="bg-[#F9A825] h-full transition-all duration-300 rounded-full"
-              style={{ width: `${splashProgress}%` }}
-            />
-          </div>
+<div
+  className="fixed inset-0 z-50 bg-gradient-to-br from-[#1B5E20] via-[#2D7D32] to-[#144217] flex flex-col items-center justify-center p-6 text-black text-center transition-opacity duration-700 bg-cover bg-fixed bg-center"
+  style={{ backgroundImage: "url('/background.jpg')" }}
+>
+  {/* Background Overlay */}
+  <div className="absolute inset-0 z-10 bg-[#1B5E20]/25"></div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button
-              onClick={enterApp}
-              className="bg-[#F9A825] hover:bg-amber-400 text-[#1B5E20] px-8 py-3 rounded-xl font-bold text-base shadow-xl transition-all hover:scale-105 flex items-center justify-center gap-2"
-            >
-              Learn More <ArrowRight className="w-5 h-5" />
-            </button>
-            <Link
-              href="/login"
-              className="bg-white hover:bg-gray-100 text-[#1B5E20] px-8 py-3 rounded-xl font-bold text-base shadow-xl transition-all hover:scale-105 flex items-center justify-center gap-2"
-            >
-              Sign In / Enter App 🌾
-            </Link>
-          </div>
-        </div>
+  {/* Content - ABOVE overlay */}
+  <div className="relative z-20 flex flex-col items-center">
+    
+    <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-[#F9A825] shadow-2xl">
+      <Image
+        src="/kisansetu-logo.png"
+        alt="KisanSetu Logo"
+        width={130}
+        height={130}
+        className="w-full h-full object-cover"
+        priority
+      />
+    </div>
+
+    <h1 className="text-4xl sm:text-7xl sm:text-white tracking-tight mb-2">
+      KisanSetu
+    </h1>
+
+    <p className="text-green-100 text-lg max-w-md mb-6 font-medium">
+      Bridging Farmers & Buyers with Transparent Price Discovery & Trusted Direct Linkages
+    </p>
+
+    {/* Progress Bar */}
+    <div className="w-64 bg-white/20 rounded-full h-2 mb-6 overflow-hidden">
+      <div
+        className="bg-[#F9A825] h-full transition-all duration-300 rounded-full"
+        style={{ width: `${splashProgress}%` }}
+      />
+    </div>
+
+    {/* Buttons */}
+    <div className="flex flex-col sm:flex-row gap-3">
+      <button
+        onClick={enterApp}
+        className="bg-[#F9A825] hover:bg-amber-400 text-[#1B5E20] px-8 py-3 rounded-lg font-bold text-base shadow-xl transition-all hover:scale-105 flex items-center justify-center gap-2"
+      >
+        Learn More <ArrowRight className="w-5 h-5" />
+      </button>
+
+      <Link
+        href="/login"
+        className="bg-white hover:bg-gray-100 text-[#1B5E20] px-8 py-3 rounded-lg font-bold text-base shadow-xl transition-all hover:scale-105 flex items-center justify-center gap-2"
+      >
+        Sign In / Enter App 🌾
+      </Link>
+    </div>
+
+  </div>
+</div>
       )}
 
       {/* ─── 2. MAIN PLATFORM SHOWCASE ─── */}
@@ -109,35 +125,49 @@ export default function SplashLandingPage() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-[#1B5E20] to-[#2D7D32] text-white py-16 sm:py-24 px-4">
-        <div className="max-w-5xl mx-auto text-center relative z-10">
-          <span className="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 px-4 py-1.5 rounded-full text-xs font-semibold text-[#F9A825] mb-6">
-            <Sparkles className="w-4 h-4" /> Next-Gen Agri Marketplace & Direct Linkage Platform
-          </span>
-          <h1 className="text-3xl sm:text-6xl font-black leading-tight tracking-tight mb-6">
-            Strengthening Market Linkages & Price Discovery for Every Farmer
-          </h1>
-          <p className="text-base sm:text-xl text-green-100 max-w-3xl mx-auto mb-8 font-normal leading-relaxed">
-            KisanSetu connects smallholder farmers and FPOs directly with verified buyers, processors, and institutional aggregators — eliminating exploitative middlemen with AI price forecasting and SHA-256 trust ledgers.
-          </p>
+{/* Hero Section */}
+<section
+  className="relative overflow-hidden text-white py-16 sm:py-24 px-4 bg-cover bg-center"
+  style={{ backgroundImage: "url('/background.jpg')" }}
+>
+  {/* Dark overlay for better text visibility */}
+  <div className="absolute inset-0 bg-[#1B5E20]/25"></div>
 
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            <Link
-              href="/login"
-              className="bg-[#F9A825] hover:bg-amber-400 text-[#1B5E20] px-8 py-3.5 rounded-xl font-black text-base shadow-xl transition-all hover:scale-105 flex items-center gap-2"
-            >
-              Sign In & Enter Dashboard <ArrowRight className="w-5 h-5" />
-            </Link>
-            <Link
-              href="/signup"
-              className="bg-white/10 hover:bg-white/20 text-white border border-white/30 px-6 py-3.5 rounded-xl font-bold text-base transition-all"
-            >
-              Create New Account
-            </Link>
-          </div>
-        </div>
-      </section>
+  <div className="max-w-5xl mx-auto text-center relative z-10">
+    <span className="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 px-4 py-1.5 rounded-full text-xs font-semibold text-[#F9A825] mb-6">
+      <Sparkles className="w-4 h-4" />
+      Next-Gen Agri Marketplace & Direct Linkage Platform
+    </span>
+
+    <h1 className="text-3xl sm:text-6xl font-black leading-tight tracking-tight mb-6">
+      Strengthening Market Linkages & Price Discovery for Every Farmer
+    </h1>
+
+    <p className="text-base sm:text-xl text-green-100 max-w-3xl mx-auto mb-8 font-normal leading-relaxed">
+      KisanSetu connects smallholder farmers and FPOs directly with verified
+      buyers, processors, and institutional aggregators — eliminating
+      exploitative middlemen with AI price forecasting and SHA-256 trust ledgers.
+    </p>
+
+    <div className="flex flex-wrap items-center justify-center gap-4">
+      <Link
+        href="/login"
+        className="bg-[#F9A825] hover:bg-amber-400 text-[#1B5E20] px-8 py-3.5 rounded-xl font-black text-base shadow-xl transition-all hover:scale-105 flex items-center gap-2"
+      >
+        Sign In & Enter Dashboard
+        <ArrowRight className="w-5 h-5" />
+      </Link>
+
+      <Link
+        href="/signup"
+        className="bg-white/10 hover:bg-white/20 text-white border border-white/30 px-6 py-3.5 rounded-xl font-bold text-base transition-all"
+      >
+        Create New Account
+      </Link>
+    </div>
+  </div>
+</section>
+
 
       {/* Impact Stats */}
       <section className="max-w-6xl mx-auto px-4 -mt-10 relative z-20">

@@ -180,108 +180,470 @@ export default function SignupPage() {
     window.location.href = dest
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1B5E20] via-[#2D7D32] to-[#388E3C] flex items-center justify-center p-4">
-      <div className="w-full max-w-lg">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex flex-col items-center gap-2 hover:opacity-90 transition-opacity mb-3">
-            <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-[#F9A825] shadow-xl">
-              <Image
-                src="/kisansetu-logo.png"
-                alt="KisanSetu Logo"
-                width={80}
-                height={80}
-                className="w-full h-full object-cover"
-                priority
-              />
-            </div>
-            <span className="text-white font-bold text-xl">KisanSetu</span>
-          </Link>
-          <h1 className="text-3xl font-bold text-white">Create your account</h1>
-          <p className="text-green-200 mt-1">Step {step} of 2</p>
-        </div>
+ return (
+  <div className="min-h-screen bg-white flex items-center justify-center p-2 sm:p-4">
 
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
+    {/* MAIN CONTAINER */}
+    <div className="w-full min-h-[calc(100vh-1rem)] sm:min-h-[calc(100vh-2rem)] bg-white rounded-[28px] overflow-hidden flex flex-col lg:flex-row">
+
+      {/* ================================================= */}
+      {/* LEFT SIDE - BACKGROUND IMAGE + KISANSETU TEXT   */}
+      {/* ================================================= */}
+
+      <div
+        className="relative w-full lg:w-[52%] min-h-[420px] lg:min-h-full bg-cover bg-center bg-no-repeat rounded-[24px] overflow-hidden"
+        style={{ backgroundImage: "url('/login1.jpg')" }}
+      >
+
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-[#062f2c]/55 pointer-events-none"></div>
+
+        {/* LEFT CONTENT */}
+        <div className="relative z-20 h-full flex flex-col justify-between p-8 sm:p-12 text-white">
+
+          {/* Logo */}
+          <div>
+            <Link
+              href="/"
+              className="inline-flex items-center gap-3 hover:opacity-90 transition-opacity"
+            >
+              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#F9A825] shadow-lg">
+                <Image
+                  src="/kisansetu-logo.png"
+                  alt="KisanSetu Logo"
+                  width={48}
+                  height={48}
+                  className="w-full h-full object-cover"
+                  priority
+                />
+              </div>
+
+              <span className="text-xl sm:text-2xl font-bold">
+                KisanSetu
+              </span>
+            </Link>
+          </div>
+
+
+          {/* Main Marketing Text */}
+          <div className="max-w-xl mt-16 lg:mt-0">
+
+            <p className="text-[#F9A825] font-bold text-sm uppercase tracking-widest mb-4">
+              🌾 Empowering Indian Agriculture
+            </p>
+
+            <h1 className="text-4xl sm:text-5xl xl:text-6xl font-black leading-[1.05] tracking-tight mb-6">
+              Join the
+              <br />
+              <span className="text-[#F9A825]">
+                KisanSetu
+              </span>
+              <br />
+              Marketplace
+            </h1>
+
+            <p className="text-green-50 text-base sm:text-lg leading-relaxed max-w-lg">
+              Create your account and connect with farmers,
+              FPOs, and trusted buyers through a transparent
+              agricultural marketplace.
+            </p>
+
+
+            {/* Features */}
+            <div className="mt-7 space-y-3">
+
+              <div className="flex items-center gap-3">
+                <div className="w-7 h-7 rounded-full bg-[#F9A825] text-[#1B5E20] flex items-center justify-center font-bold text-sm">
+                  ✓
+                </div>
+
+                <span className="text-sm sm:text-base">
+                  Discover fair and transparent prices
+                </span>
+              </div>
+
+
+              <div className="flex items-center gap-3">
+                <div className="w-7 h-7 rounded-full bg-[#F9A825] text-[#1B5E20] flex items-center justify-center font-bold text-sm">
+                  ✓
+                </div>
+
+                <span className="text-sm sm:text-base">
+                  Connect with verified market participants
+                </span>
+              </div>
+
+
+              <div className="flex items-center gap-3">
+                <div className="w-7 h-7 rounded-full bg-[#F9A825] text-[#1B5E20] flex items-center justify-center font-bold text-sm">
+                  ✓
+                </div>
+
+                <span className="text-sm sm:text-base">
+                  Build trusted direct trade relationships
+                </span>
+              </div>
+
+            </div>
+
+          </div>
+
+
+          {/* Bottom Text */}
+          <p className="text-green-100/80 text-xs sm:text-sm mt-10">
+            Fair prices • Direct connections • Trusted marketplace
+          </p>
+
+        </div>
+      </div>
+
+
+      {/* ================================================= */}
+      {/* RIGHT SIDE - SIGNUP                               */}
+      {/* ================================================= */}
+
+      <div className="w-full lg:w-[48%] bg-white flex items-center justify-center px-6 py-10 sm:px-10 lg:px-14 xl:px-20 overflow-y-auto">
+
+        <div className="w-full max-w-md">
+
+          {/* ================= HEADER ================= */}
+
+          <div className="text-center mb-8">
+
+            <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+              CREATE ACCOUNT
+            </h1>
+
+            <p className="text-gray-500 mt-2 text-sm">
+              Join KisanSetu and start connecting with the market.
+            </p>
+
+            {/* Step Indicator */}
+            <div className="flex items-center justify-center gap-3 mt-6">
+
+              {/* Step 1 */}
+              <div
+                className={`flex items-center gap-2 text-xs font-semibold ${
+                  step === 1
+                    ? "text-[#075B63]"
+                    : "text-gray-400"
+                }`}
+              >
+                <span
+                  className={`w-7 h-7 rounded-full flex items-center justify-center ${
+                    step === 1
+                      ? "bg-[#075B63] text-white"
+                      : "bg-gray-100 text-gray-400"
+                  }`}
+                >
+                  1
+                </span>
+
+                Role
+              </div>
+
+
+              <div className="w-10 h-px bg-gray-200"></div>
+
+
+              {/* Step 2 */}
+              <div
+                className={`flex items-center gap-2 text-xs font-semibold ${
+                  step === 2
+                    ? "text-[#075B63]"
+                    : "text-gray-400"
+                }`}
+              >
+                <span
+                  className={`w-7 h-7 rounded-full flex items-center justify-center ${
+                    step === 2
+                      ? "bg-[#075B63] text-white"
+                      : "bg-gray-100 text-gray-400"
+                  }`}
+                >
+                  2
+                </span>
+
+                Account
+              </div>
+
+            </div>
+
+          </div>
+
+
+          {/* ================= STEP CONTENT ================= */}
+
           {step === 1 ? (
-            <>
-              <h2 className="text-lg font-bold text-gray-800 mb-1">Select your role</h2>
-              <p className="text-sm text-gray-500 mb-5">Choose how you will use KisanSetu</p>
+
+            /* ========================================= */
+            /* STEP 1 - ROLE SELECTION                   */
+            /* ========================================= */
+
+            <div>
+
+              <h2 className="text-xl font-bold text-gray-900 mb-1">
+                Select your role
+              </h2>
+
+              <p className="text-sm text-gray-500 mb-5">
+                Choose how you will use KisanSetu
+              </p>
+
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
                 {ROLES.map(role => {
+
                   const isSelected = selectedRole === role.id
+
                   return (
-                    <button key={role.id} type="button" onClick={() => setSelectedRole(role.id)}
-                      className={`text-left p-4 rounded-xl border-2 transition-all ${isSelected ? role.activeColor : 'border-gray-200 hover:border-gray-300 bg-white'}`}>
+                    <button
+                      key={role.id}
+                      type="button"
+                      onClick={() => setSelectedRole(role.id)}
+                      className={`
+                        text-left p-4 rounded-xl border-2
+                        transition-all duration-200
+                        ${
+                          isSelected
+                            ? role.activeColor
+                            : "border-gray-200 hover:border-[#075B63] bg-white"
+                        }
+                      `}
+                    >
+
                       <div className="flex items-start gap-3">
-                        <span className="text-2xl">{role.emoji}</span>
+
+                        <span className="text-2xl">
+                          {role.emoji}
+                        </span>
+
                         <div>
-                          <p className={`font-semibold ${isSelected ? 'text-white' : 'text-gray-800'}`}>{role.title}</p>
-                          <p className={`text-xs mt-0.5 ${isSelected ? 'text-white/80' : 'text-gray-500'}`}>{role.description}</p>
+
+                          <p
+                            className={`font-semibold ${
+                              isSelected
+                                ? "text-white"
+                                : "text-gray-800"
+                            }`}
+                          >
+                            {role.title}
+                          </p>
+
+                          <p
+                            className={`text-xs mt-1 leading-relaxed ${
+                              isSelected
+                                ? "text-white/80"
+                                : "text-gray-500"
+                            }`}
+                          >
+                            {role.description}
+                          </p>
+
                         </div>
+
                       </div>
+
                     </button>
                   )
                 })}
+
               </div>
-              <button onClick={() => setStep(2)} disabled={!selectedRole}
-                className="mt-6 w-full bg-[#2D7D32] hover:bg-[#1B5E20] text-white py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
-                Continue <ArrowRight className="w-4 h-4" />
+
+
+              {/* Continue */}
+              <button
+                onClick={() => setStep(2)}
+                disabled={!selectedRole}
+                className="mt-6 w-full bg-[#075B63] hover:bg-[#064b52] text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+              >
+                Continue
+                <ArrowRight className="w-4 h-4" />
               </button>
-            </>
+
+
+              {/* Login link */}
+              <p className="text-center text-sm text-gray-500 mt-6">
+                Already have an account?{" "}
+
+                <Link
+                  href="/login"
+                  className="text-[#075B63] font-semibold hover:underline"
+                >
+                  Sign in
+                </Link>
+              </p>
+
+            </div>
+
           ) : (
-            <form onSubmit={handleSignup} className="space-y-4">
-              <button type="button" onClick={() => setStep(1)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-2">
-                <ArrowLeft className="w-4 h-4" /> Back to Role Selection
+
+            /* ========================================= */
+            /* STEP 2 - ACCOUNT DETAILS                 */
+            /* ========================================= */
+
+            <form
+              onSubmit={handleSignup}
+              className="space-y-5"
+            >
+
+              {/* Back */}
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#075B63] transition-colors mb-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Role Selection
               </button>
 
-              <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-xs text-green-800 flex items-center gap-2">
+
+              {/* Selected Role */}
+              <div className="bg-[#F1F8E9] border border-green-200 rounded-xl p-3 text-xs text-green-800 flex items-center gap-2">
+
                 <Check className="w-4 h-4 text-green-600 shrink-0" />
-                <span>Selected Role: <strong className="capitalize">{selectedRole?.replace('_', ' ')}</strong></span>
+
+                <span>
+                  Selected Role:{" "}
+                  <strong className="capitalize">
+                    {selectedRole?.replace("_", " ")}
+                  </strong>
+                </span>
+
               </div>
 
+
+              {/* Confirmation message */}
               {unconfirmedMessage && (
                 <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 space-y-3">
+
                   <div className="flex items-start gap-2 text-amber-900 text-xs">
+
                     <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                    <span>{unconfirmedMessage}</span>
+
+                    <span>
+                      {unconfirmedMessage}
+                    </span>
+
                   </div>
-                  <button type="button" onClick={handleAutoConfirm} disabled={loading}
-                    className="w-full bg-[#F9A825] hover:bg-amber-500 text-[#1B5E20] text-xs font-bold py-2 rounded-lg transition-colors">
+
+
+                  <button
+                    type="button"
+                    onClick={handleAutoConfirm}
+                    disabled={loading}
+                    className="w-full bg-[#F9A825] hover:bg-amber-500 text-[#1B5E20] text-xs font-bold py-2.5 rounded-lg transition-colors disabled:opacity-50"
+                  >
                     ⚡ Auto-Confirm Email & Log In Now
                   </button>
+
                 </div>
               )}
 
+
+              {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
-                <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2D7D32] transition-all" />
+
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Email Address
+                </label>
+
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#075B63] focus:border-[#075B63] transition-all"
+                />
+
               </div>
+
+
+              {/* Password */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
-                <input type="password" required value={password} onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••" minLength={6}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2D7D32] transition-all" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password</label>
-                <input type="password" required value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
+
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Password
+                </label>
+
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2D7D32] transition-all" />
+                  minLength={6}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#075B63] focus:border-[#075B63] transition-all"
+                />
+
               </div>
-              <button type="submit" disabled={loading}
-                className="w-full bg-[#2D7D32] hover:bg-[#1B5E20] text-white py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-60 shadow-md">
-                {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Create Account <ArrowRight className="w-4 h-4" /></>}
+
+
+              {/* Confirm Password */}
+              <div>
+
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Confirm Password
+                </label>
+
+                <input
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#075B63] focus:border-[#075B63] transition-all"
+                />
+
+              </div>
+
+
+              {/* Create Account */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#075B63] hover:bg-[#064b52] text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-60 shadow-sm hover:shadow-md"
+              >
+
+                {loading ? (
+
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+
+                ) : (
+
+                  <>
+                    Create Account
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+
+                )}
+
               </button>
-              <p className="text-center text-sm text-gray-500">
-                Already have an account? <Link href="/login" className="text-[#2D7D32] font-semibold hover:underline">Sign in</Link>
+
+
+              {/* Login */}
+              <p className="text-center text-sm text-gray-500 pt-1">
+                Already have an account?{" "}
+
+                <Link
+                  href="/login"
+                  className="text-[#075B63] font-semibold hover:underline"
+                >
+                  Sign in
+                </Link>
+
               </p>
+
             </form>
+
           )}
+
         </div>
       </div>
+
     </div>
-  )
+  </div>
+)
 }
